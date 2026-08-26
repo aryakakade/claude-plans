@@ -271,12 +271,14 @@ in CI); a test that the ranking/dedup logic behaves correctly on synthetic overl
    **Resolution:** All three settled.
    - **MG thymus → GSE233180** ([Single-Cell Transcriptomics Identifies a Prominent Role for the
      MIF-CD74 Axis in Myasthenia Gravis Thymus](https://pmc.ncbi.nlm.nih.gov/articles/PMC11978437/)).
-     Thymic cell suspensions from 11 immunotherapy-naïve AChR-Ab+ early-onset MG (EOMG)
-     patients — the thymic-hyperplasia-associated subtype that matches the "~80% of MG begins
-     in the thymus" framing in the source doc (as opposed to thymoma-associated MG). CD45+-
-     sorted, 29,688 cells across 15 annotated populations, with reported germinal-center B-cell
-     trajectories — directly relevant to TLS biology. See the CD45+-sorting caveat noted under
-     Step 2.
+     Thymic cell suspensions from 12 immunotherapy-naïve AChR-Ab+ early-onset MG (EOMG)
+     patients (10 female, 2 male; 24 samples total) — the thymic-hyperplasia-associated subtype
+     that matches the "~80% of MG begins in the thymus" framing in the source doc (as opposed to
+     thymoma-associated MG). CD45+-sorted, 29,688 cells across 15 annotated populations, with
+     reported germinal-center B-cell trajectories — directly relevant to TLS biology. See the
+     CD45+-sorting caveat noted under Step 2. GEO series title: "Thymic B lineage cell landscape
+     in Myasthenia gravis"; supplementary data is one `GSE233180_RAW.tar` (836.8 MB, per-sample
+     H5/CSV count matrices).
    - **Sjögren's salivary gland → GSE272409** (already in use for question 6's resolution) —
      whole-tissue, so it also covers the non-immune stromal side Step 5 needs.
    - **Healthy tonsil → Human Tonsil Atlas** ([An atlas of cells in the human tonsil, Massoni-Badosa
