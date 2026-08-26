@@ -203,6 +203,19 @@ published mechanistic driver of thymic MG autoimmunity.
   are provided with this paper" (i.e. files attached to the article itself, not a queryable dataset).
   So this ground-truth check is a comparison against the paper's **reported findings and any
   Source Data tables**, not a reprocessing of a proper spatial dataset the way Step 3 does for MG.
+  **Concrete targets (found while verifying the above):** a Source Data file exists and is directly
+  downloadable — `41467_2024_54686_MOESM7_ESM.xlsx` (9.2 MB), linked from the article page.
+  The paper also reports specific marker genes for its two key stromal states, usable as the
+  comparison list even before that file is pulled:
+  - **Immunofibroblast state** (CCL19⁺/TNFSF13B⁺ fibroblasts): `CD34, CCL19, TNFSF13B,
+    ICAM1, VCAM1, CD82, CXCL9` (+ `RELB, NFKB2` for non-canonical NFκB signaling;
+    `IFNGR1, IFNGR2, TNFRSF1A, IRF1, SOCS1`).
+  - **Pericyte/mural cell state** (the paper's headline "undescribed" finding): core
+    `RGS5, ACTA2, MCAM`; defining `CCL21, CCL19, TNC`; plus `CCL8, VCAM1, CCL2` — notably
+    *lacking* `TNFSF13B, CD82, PDGFRA`, which is what distinguishes it from the immunofibroblast
+    state above.
+  Same logic as the BAFF/CXCL13 positive control in Step 7: check whether our own
+  independently-derived stromal marker list recovers these genes (or close pathway relatives).
 
 **Tests to add later:** unit test of the subtraction/regression function against synthetic data
 where the "shared" and "unique" signals are known/planted, confirming the function recovers the
