@@ -294,7 +294,11 @@ in CI); a test that the ranking/dedup logic behaves correctly on synthetic overl
    - **MG thymus → GSE233180** ([Single-Cell Transcriptomics Identifies a Prominent Role for the
      MIF-CD74 Axis in Myasthenia Gravis Thymus](https://pmc.ncbi.nlm.nih.gov/articles/PMC11978437/)).
      Thymic cell suspensions from 12 immunotherapy-naïve AChR-Ab+ early-onset MG (EOMG)
-     patients (10 female, 2 male; 24 samples total) — the thymic-hyperplasia-associated subtype
+     patients (10 female, 2 male). **Correction (verified against the actual downloaded files):**
+     the GEO page's "24 samples" is 12 scRNA-seq `.h5` files (one per patient, MG1–MG12) plus
+     12 separate BCR repertoire-seq files (V(D)J immune repertoire, a different assay — not used
+     for this project, but a candidate bonus dataset for B-cell clonality analysis in a later phase),
+     not 24 independent scRNA-seq samples — the thymic-hyperplasia-associated subtype
      that matches the "~80% of MG begins in the thymus" framing in the source doc (as opposed to
      thymoma-associated MG). CD45+-sorted, 29,688 cells across 15 annotated populations, with
      reported germinal-center B-cell trajectories — directly relevant to TLS biology. See the
