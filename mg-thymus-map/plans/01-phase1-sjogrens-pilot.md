@@ -311,14 +311,21 @@ in CI); a test that the ranking/dedup logic behaves correctly on synthetic overl
      (367.9 MB, per-sample MTX/TSV count matrices).
    - **Healthy tonsil → Human Tonsil Atlas** ([An atlas of cells in the human tonsil, Massoni-Badosa
      et al., *Immunity* 2024](https://www.cell.com/immunity/fulltext/S1074-7613(24)00031-1)).
-     >556,000 cells, 121 annotated cell types/states, healthy tonsil — purpose-built as a reference
-     atlas rather than a side comparison in an unrelated study. **Not a single GEO accession**: raw
-     data is on ArrayExpress (**E-MTAB-13687**), processed expression matrices are on Zenodo, and
-     it's also distributed as the `HCATonsilData` Bioconductor package — note this for Step 1's
-     download/load script, since it needs different handling than a plain GEO `GSE` pull. Bonus:
-     it includes matched spatial transcriptomics, which extends the spatial-validation pattern
-     already used for MG (Step 3) and Sjögren's (Step 5) — tonsil's own real germinal centers are a
-     natural extra positive control for Step 4's cross-disease projection.
+     17 donors, >556,000 cells across 5 modalities, 121 annotated cell types/states, healthy tonsil —
+     purpose-built as a reference atlas rather than a side comparison in an unrelated study.
+     **Not a single GEO accession, and not ArrayExpress either for our purposes** (verified against
+     the actual ArrayExpress page): **E-MTAB-13687** is *raw FASTQ* across all 5 modalities — using
+     it would mean running our own Cell Ranger/Space Ranger, well out of scope. The actual source
+     to pull from is Zenodo: **`https://zenodo.org/records/10373041`**, file `scRNA-seq.zip`
+     (4.4 GB, per-sample CellRanger outputs — the same tier of raw/lightly-processed counts as
+     GSE233180/GSE272409, so we still run our own QC/annotation) plus
+     `tonsil_atlas_donor_metadata.csv` for provenance. Also distributed as the `HCATonsilData`
+     Bioconductor package and as Seurat objects (a separate Zenodo record, `8373756`) if ever
+     needed for cross-checking annotations against the atlas's own published cell-type calls.
+     Bonus, and this one *is* confirmed accurate (unlike the Sjögren's spatial claim — see question
+     6's correction): this same Zenodo record's `spatial_transcriptomics.zip` has real Visium data
+     (2 slides) — not used in Phase 1, but genuinely available if a later phase wants a tonsil spatial
+     cross-check, unlike the Sjögren's side.
      (Considered and set aside: GSE139324 — an HNSCC immune-profiling study that includes only
      5 non-cancer tonsil samples as a side comparison among a much larger cancer cohort; usable
      as a fallback/independent check, but not purpose-built for this project.)
