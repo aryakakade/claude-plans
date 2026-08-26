@@ -1,0 +1,58 @@
+        Project Introduction: A Thymus-Anchored Map of Tertiary
+       Lymphoid Structures Across Multiple Autoimmune Diseases
+
+                       Topic: Computational Biology & Bioinformatics
+
+                               Student Researcher: Arya Kakade
+
+Abstract
+1.1 Introduction
+
+Autoimmune diseases can be defined by the hyperactivation against one’s own tissues. This often
+results in the formation of ectopic Tertiary Lymphoid Structures (TLS). Standard-of-care treatments
+currently rely heavily on broad systemic immunosuppressants (corticosteroids, Rituximab) and
+surgery. Although these drugs control symptoms, they often harm healthy peripheral cells.
+
+While recent single-cell RNA sequencing (scRNA-seq) atlases have compared peripheral diseases
+such as Rheumatoid Arthritis (RA) and Systemic Lupus Erythematosus (SLE), they have historically
+omitted the central thymic pathology of Myasthenia Gravis (MG) from cross-disease integrations.
+Because 80% of Myasthenia Gravis begins in the thymus, i.e. that is primary for central tolerance, it
+provides a starting point to study how these rogue immune structures are built.
+
+1.2 Aim
+    1.​ To determine if peripheral autoimmune diseases (SLE, RA, Sjögren’s Syndrome, MG and
+        Graves Disease) utilise the same central immune structure as Myasthenia Gravis to create
+        Tertiary Lymphoid Structures.
+    2.​ Use this shared architecture as a subtractive baseline to isolate therapeutic targets using Query
+        approaches for each organ.
+
+
+
+1.3 Methods
+
+    1.​ Data Assembly: Collect scRNA-seq datasets for MG (Thymus), RA, SLE, Sjögren's
+        Syndrome, Graves' Disease, and healthy tonsil tissue (which will be the statistical control
+        group).
+    2.​ TLS Isolation: Identify the cell interactions driving MG so that we can extract the shared
+        immune structure of the 5 autoimmune diseases.
+    3.​ Cross-Disease Projection: Apply the MG immune structure to the other disease datasets using
+        AUCell scoring to calculate the proportion of the shared immune response.
+    4.​ Stromal Extraction: Computationally subtract the shared immune response to isolate
+        non-immune stromal targets (e.g., thymic epithelial cells, synovial fibroblasts) that uniquely
+        cause local tissue damage.
+    5.​ Pharmacogenomic Mapping: Query the isolated stromal targets against chemogenomic
+        databases (DGIdb, ChEMBL) to identify medication/drugs that can be localised to these
+        targets.
+References:
+   1.​ Corsiero E, Nerviani A, Bombardieri M, Pitzalis C. Ectopic Lymphoid Structures: Powerhouse of
+       Autoimmunity. Front Immunol. 2016 Oct 17;7:430. doi: 10.3389/fimmu.2016.00430. PMID:
+       27799933; PMCID: PMC5066320.
+   2.​ Dong Y, Wang T, Wu H. Tertiary lymphoid structures in autoimmune diseases. Frontiers in
+       Immunology. 2024;14:1322035.
+   3.​ Agustina M. Lascano, Patrice H. Lalive, Update in immunosuppressive therapy of myasthenia gravis,
+       Autoimmunity        Reviews,      Volume      20, Issue  1,2021,102712,     ISSN      1568-9972,
+       https://doi.org/10.1016/j.autrev.2020.102712.
+   4.​ Sikorski PM, Kaminski HJ, Kusner LL. Thymic hyperplasia in myasthenia gravis: a narrative review.
+       Mediastinum. 2025 Jun 25;9:17. doi: 10.21037/med-25-12. PMID: 40666538; PMCID:
+       PMC12260958.
+
