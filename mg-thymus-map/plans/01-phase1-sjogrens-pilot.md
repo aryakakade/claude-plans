@@ -194,9 +194,15 @@ published mechanistic driver of thymic MG autoimmunity.
 - **Ground-truth check (added per question 5/6's resolution):** compare the derived stromal
   marker list against the fibroblast and pericyte/mural cell findings from [Molecular and spatial
   analysis of tertiary lymphoid structures in Sjogren's syndrome (Nature Communications, Jan
-  2025; GEO GSE272409)](https://www.nature.com/articles/s41467-024-54686-0), which combined
-  scRNA-seq, spatial transcriptomics, and proteomics of minor salivary glands specifically to map
-  TLS formation in Sjögren's — the closest thing to matched ground truth this pilot has access to.
+  2025)](https://www.nature.com/articles/s41467-024-54686-0) — the closest thing to matched
+  ground truth this pilot has access to. **Correction (verified against the paper's actual Data
+  Availability statement):** the paper's scRNA-seq is GEO **GSE272409** (confirmed
+  scRNA-seq-only; a separate **GSE272410** holds unrelated bulk RNA-seq data). Its spatial
+  component is **Nanostring GeoMx spatial proteomics + multiplex immunofluorescence
+  imaging** — not Visium, and not deposited in any repository; the paper states only "Source data
+  are provided with this paper" (i.e. files attached to the article itself, not a queryable dataset).
+  So this ground-truth check is a comparison against the paper's **reported findings and any
+  Source Data tables**, not a reprocessing of a proper spatial dataset the way Step 3 does for MG.
 
 **Tests to add later:** unit test of the subtraction/regression function against synthetic data
 where the "shared" and "unique" signals are known/planted, confirming the function recovers the
@@ -222,10 +228,12 @@ in CI); a test that the ranking/dedup logic behaves correctly on synthetic overl
 - Positive-control check: does the pipeline surface expected genes/targets (e.g. BAFF/
   `TNFSF13B`, CXCL13) among its outputs? If not, that's a signal to revisit earlier steps before
   trusting Phase 2+.
-- Spatial cross-check: summarize how the Step 3 and Step 5 spatial comparisons (against the MG
-  thymoma/hyperplasia Visium paper and the Sjögren's GSE272409 spatial+scRNA+proteomics
-  paper, respectively) came out — agreement strengthens confidence in the pipeline; disagreement
-  is a useful, reportable finding in its own right, not a failure.
+- Spatial/ground-truth cross-check: summarize how the Step 3 comparison (against the MG
+  thymoma/hyperplasia Visium paper, a real reprocessable spatial dataset) and the Step 5
+  comparison (against the Sjögren's GSE272409 paper's reported findings — a literature/marker
+  comparison, not a reprocessed spatial dataset, per that correction) came out — agreement
+  strengthens confidence in the pipeline; disagreement is a useful, reportable finding in its own
+  right, not a failure.
 - Write a short Phase 1 report (in `docs/` or a notebook) covering: what was run, the headline
   shared-architecture metric, the stromal target list, and whether the positive controls held up.
 - **Limitations section (required, not optional):** explicitly state what this pilot does and doesn't
@@ -248,8 +256,9 @@ in CI); a test that the ranking/dedup logic behaves correctly on synthetic overl
 - `tests/unit/`, `tests/integration/`, `tests/fixtures/` covering all of the above
 - `README.md` — updated with Phase 1 setup/run instructions
 - `Makefile` — `make setup`, `make test`, `make phase1`
-- A short Phase 1 findings write-up, including the spatial validation cross-check (Steps 3, 5, 7 —
-  vs. the MG thymoma/hyperplasia Visium paper and the Sjögren's GSE272409 paper) and a required
+- A short Phase 1 findings write-up, including the spatial/ground-truth cross-check (Steps 3, 5, 7 —
+  reprocessed Visium data for MG's thymoma/hyperplasia paper; reported-findings comparison
+  only for Sjögren's GSE272409, since it has no reprocessable spatial deposit) and a required
   Limitations section (Step 7)
 
 ## 6. Risks & mitigations
@@ -279,8 +288,14 @@ in CI); a test that the ranking/dedup logic behaves correctly on synthetic overl
      CD45+-sorting caveat noted under Step 2. GEO series title: "Thymic B lineage cell landscape
      in Myasthenia gravis"; supplementary data is one `GSE233180_RAW.tar` (836.8 MB, per-sample
      H5/CSV count matrices).
-   - **Sjögren's salivary gland → GSE272409** (already in use for question 6's resolution) —
-     whole-tissue, so it also covers the non-immune stromal side Step 5 needs.
+   - **Sjögren's salivary gland → GSE272409** — 13 samples (7 primary Sjögren's Syndrome/PSS
+     patients confirmed by focal lymphocytic sialadenitis histology, 6 non-Sjögren's sicca syndrome
+     patients — **not** healthy controls; the project's healthy baseline is the separate tonsil
+     dataset). Whole-tissue (dissociation + dead-cell removal only, no cell-type sorting), so it also
+     covers the non-immune stromal side Step 5 needs. Confirmed **scRNA-seq only** via the
+     paper's actual Data Availability statement — see question 6's resolution for the correction on
+     what this accession does and doesn't include. Supplementary data: `GSE272409_RAW.tar`
+     (367.9 MB, per-sample MTX/TSV count matrices).
    - **Healthy tonsil → Human Tonsil Atlas** ([An atlas of cells in the human tonsil, Massoni-Badosa
      et al., *Immunity* 2024](https://www.cell.com/immunity/fulltext/S1074-7613(24)00031-1)).
      >556,000 cells, 121 annotated cell types/states, healthy tonsil — purpose-built as a reference
@@ -332,29 +347,47 @@ in CI); a test that the ranking/dedup logic behaves correctly on synthetic overl
    our stromal target list against, beyond the general positive-control genes mentioned in Step 7?
    **Resolution:** Yes. [Molecular and spatial analysis of tertiary lymphoid structures in Sjogren's
    syndrome](https://www.nature.com/articles/s41467-024-54686-0) (Nature Communications, Jan
-   2025; GEO GSE272409) combines scRNA-seq, spatial transcriptomics, and proteomics of minor
-   salivary glands specifically to map TLS formation in Sjögren's, and reports fibroblast and
-   pericyte/mural cell states with immunological function — directly usable as a comparison point
-   for Step 5's stromal target list. Discovered incidentally while researching question 6.
+   2025) combines scRNA-seq (GEO **GSE272409**), spatial proteomics/imaging, and other
+   modalities of minor salivary glands specifically to map TLS formation in Sjögren's, and reports
+   fibroblast and pericyte/mural cell states with immunological function — directly usable as a
+   comparison point for Step 5's stromal target list. Discovered incidentally while researching
+   question 6. **Correction (verified against the actual GEO page and the paper's Data
+   Availability statement):** GSE272409 itself is scRNA-seq only; the paper's spatial component
+   (Nanostring GeoMx + multiplex immunofluorescence, not Visium) has no repository accession at
+   all, only "Source data provided with this paper." So this ground truth is the paper's *reported
+   findings* to compare against, not a dataset to reprocess — see question 6's correction for detail.
 
 6. **Spatial data in scope?** — Status: **Resolved**
    Is this scRNA-seq only, or is any spatial transcriptomics data in scope? TLS are inherently a
    spatial phenomenon (organized cellular niches); scRNA-seq alone can capture cell states and
    inferred interactions but not physical organization. This affects Step 3 ("TLS Isolation")
    significantly, so worth resolving before that step starts.
-   **Resolution:** In scope as a **validation layer, not a required core pipeline input**. Confirmed
-   public spatial data exists for both organs: [Spatial transcriptomics elucidates medulla niche
-   supporting germinal center response in myasthenia gravis-associated thymoma (Cell Reports,
-   2024)](https://www.cell.com/cell-reports/fulltext/S2211-1247(24)01028-3) — Visium on thymoma
-   and thymic hyperplasia samples, matching the hyperplasia pathology behind ~80% of MG — and
-   the Sjögren's [GSE272409](https://www.nature.com/articles/s41467-024-54686-0) paper above,
-   which already includes matched spatial transcriptomics. Rather than making raw spatial
-   processing (spot deconvolution, niche/neighborhood detection, a spatial data model beyond
-   plain `AnnData`) a required Phase 1 pipeline stage — disproportionate engineering scope for a
-   pilot whose main job is proving the assembly→projection→subtraction→mapping shape works —
-   Phase 1 uses these two published datasets as an independent validation check (see the added
-   notes in Steps 3, 5, and 7). Building spatial processing as a first-class pipeline stage is deferred
-   as a candidate for a later phase.
+   **Resolution:** In scope as a **validation layer, not a required core pipeline input** — with an
+   important asymmetry between the two organs, discovered after this was first resolved (verified
+   against the actual GEO pages and the Sjögren's paper's Data Availability statement):
+   - **MG side: a real, reprocessable spatial dataset exists.** [Spatial transcriptomics elucidates
+     medulla niche supporting germinal center response in myasthenia gravis-associated thymoma
+     (Cell Reports, 2024)](https://www.cell.com/cell-reports/fulltext/S2211-1247(24)01028-3) is
+     genuine 10x Visium data on thymoma and thymic hyperplasia samples, matching the
+     hyperplasia pathology behind ~80% of MG. Step 3's spatial validation can reprocess this with
+     our own AUCell scoring, as planned.
+   - **Sjögren's side: no reprocessable spatial dataset exists.** GEO **GSE272409** is
+     scRNA-seq only. The Sjögren's paper's spatial component is Nanostring GeoMx spatial
+     proteomics + multiplex immunofluorescence imaging (not Visium), and it has **no repository
+     accession at all** — the paper's Data Availability statement covers only the scRNA-seq
+     (GSE272409) and an unrelated bulk RNA-seq series (GSE272410), and states just "Source data
+     are provided with this paper" for everything else. So Step 5's Sjögren's ground-truth check
+     is necessarily a comparison against the paper's *reported findings* (and its Source Data
+     files, if easily obtainable from the article page), not a reprocessed spatial dataset — this is
+     now the only option for that side, not a time-driven fallback choice.
+
+   Rather than making raw spatial processing (spot deconvolution, niche/neighborhood detection, a
+   spatial data model beyond plain `AnnData`) a required Phase 1 pipeline stage — disproportionate
+   engineering scope for a pilot whose main job is proving the
+   assembly→projection→subtraction→mapping shape works — Phase 1 uses whatever's actually
+   available per organ (MG: reprocessed Visium; Sjögren's: reported findings) as an independent
+   validation check (see the notes in Steps 3, 5, and 7). Building spatial processing as a first-class
+   pipeline stage is deferred as a candidate for a later phase.
 
 7. **MG-side stromal extraction (thymic epithelial cells) — when, not if** — Status: **Resolved**
    The source doc's Stromal Extraction step names "thymic epithelial cells" as its first example
@@ -377,11 +410,15 @@ in CI); a test that the ranking/dedup logic behaves correctly on synthetic overl
 Deadline: submission to the **IRIS National Fair (India) by 2026-09-30** — ~34 days from when
 this was added (corrected from an initially-stated 2026-09-15, which was a self-imposed buffer,
 not the real deadline). With the extra time, **Phase 1 proceeds at full rigor exactly as detailed in
-§§3–7** — no lazy cuts. Concretely, that means: proper spatial validation (reprocessing the MG
-and Sjögren's papers' deposited spatial data with our own AUCell scoring, not just a gene-list-
-overlap shortcut), full test coverage (unit + integration + API-client fixture tests, not just a
-handful of core unit tests), and standard Phase 0 infra (a real repo scaffold, `pytest` with
-coverage, a proper `Makefile`) — not a stripped-down MVP version of any of it.
+§§3–7** — no lazy cuts. Concretely, that means: proper spatial validation on the MG side
+(reprocessing the Cell Reports paper's deposited Visium data with our own AUCell scoring, not a
+gene-overlap shortcut) and the best available ground-truth comparison on the Sjögren's side
+(there's no reprocessable spatial dataset there — see question 6's correction — so the extra time
+buys thoroughness in comparing against the paper's reported findings and Source Data, not
+reprocessing something that doesn't exist), full test coverage (unit + integration + API-client
+fixture tests, not just a handful of core unit tests), and standard Phase 0 infra (a real repo
+scaffold, `pytest` with coverage, a proper `Makefile`) — not a stripped-down MVP version of any
+of it.
 
 What's still explicitly *not* in scope for this submission — not because of time pressure, but
 because it's genuinely separate work by design:
@@ -398,7 +435,7 @@ because it's genuinely separate work by design:
 | 1 | Aug 26 – Sep 1 | Phase 0: proper repo scaffold (`uv` + `pyproject.toml`, `src/mg_thymus_map/` layout, `configs/`, `tests/{unit,integration,fixtures}`), `pytest` + coverage wired up, `Makefile` (`setup`/`test`/`phase1`). Kick off downloads for all 3 datasets (GSE233180, GSE272409, Human Tonsil Atlas) — start early since the tonsil atlas's Zenodo/Bioconductor distribution needs its own loader path. | ~15–20 | ~2.5–3.5 hrs |
 | 2 | Sep 2 – Sep 8 | Steps 1–2 in full: load, QC, normalize, and annotate all 3 datasets onto the shared cell-type vocabulary; batch/dataset-effect check and integration (Harmony/scVI) if needed. Unit tests for QC filters and vocabulary validation written alongside, not bolted on after. This is historically where real-data pipelines lose the most time to surprises (mismatched gene symbols, unexpected metadata gaps) — the extra week of buffer here is deliberate. | ~30–40 | ~5–6.5 hrs |
 | 3 | Sep 9 – Sep 15 | Step 3 in full: TLS signature seeded with the 12-chemokine prior and refined on MG data, with provenance tagging; cell–cell communication analysis (`liana-py`/`squidpy`); **full spatial validation** — reprocess the MG Cell Reports Visium data with our own AUCell scoring against the derived signature, not the gene-overlap fallback. Unit tests for signature determinism and schema. | ~25–35 | ~4–5.5 hrs |
-| 4 | Sep 16 – Sep 22 | Step 4: AUCell cross-disease projection onto Sjögren's + tonsil, with proper statistics (distribution comparison, multiple-testing correction, threshold-sensitivity reporting). Step 5: stromal extraction on Sjögren's, plus the **full ground-truth comparison** against GSE272409's own spatial+proteomics findings (reprocessing its deposited spatial data where useful, not just comparing gene lists). Tests for the AUCell wrapper, thresholding stats, and the subtraction/regression logic against synthetic planted-signal fixtures. | ~30–38 | ~5–6 hrs |
+| 4 | Sep 16 – Sep 22 | Step 4: AUCell cross-disease projection onto Sjögren's + tonsil, with proper statistics (distribution comparison, multiple-testing correction, threshold-sensitivity reporting). Step 5: stromal extraction on Sjögren's, plus the ground-truth comparison against the GSE272409 paper's reported fibroblast/pericyte findings and Source Data (there is no reprocessable spatial dataset on the Sjögren's side — see question 6's correction). Tests for the AUCell wrapper, thresholding stats, and the subtraction/regression logic against synthetic planted-signal fixtures. | ~30–38 | ~5–6 hrs |
 | 5 | Sep 23 – Sep 29 | Step 6: DGIdb/ChEMBL pharmacogenomic mapping, with client tests against recorded API-response fixtures (no live network calls in CI), proper dedup/ranking with full provenance. Step 7: validation against positive controls (BAFF, CXCL13, plus the spatial cross-checks from weeks 3–4), full findings write-up, README finalized, full test suite pass. | ~22–31 | ~3.5–5 hrs |
 | — | Sep 30 | Buffer day / final review / submission. | ~4–6 | — |
 
