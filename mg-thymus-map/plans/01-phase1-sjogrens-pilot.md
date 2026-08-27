@@ -41,13 +41,12 @@ risky. Sjögren's is a reasonable first target to pair with MG because:
 - [x] MG thymus, Sjögren's salivary gland, and healthy tonsil scRNA-seq datasets are downloaded,
       documented (source, accession, license), and load cleanly into `anndata` objects. **Done
       2026-08-26/27** — see Step 1 implementation notes.
-- [~] QC + normalization + cell-type annotation produces a labeled MG dataset and a labeled
-      Sjögren's dataset with a shared, consistent cell-type vocabulary. **Mostly done 2026-08-27**
-      — see Step 2 implementation notes. Extended beyond the original wording: all *three* datasets
+- [x] QC + normalization + cell-type annotation produces a labeled MG dataset and a labeled
+      Sjögren's dataset with a shared, consistent cell-type vocabulary. **Done 2026-08-27** — see
+      Step 2 implementation notes. Extended beyond the original wording: all *three* datasets
       are QC'd/normalized/annotated, and a batch-effect check + Harmony integration was added —
       not originally itemized here, but necessary to trust the shared vocabulary across datasets.
-      **One gap:** doublet detection (originally planned as part of QC) was not implemented — see
-      Step 2's "Known gap" note.
+      (Doublet detection was briefly a gap the same day — closed before end of day; see Step 2.)
 - [ ] An MG-derived TLS gene/cell-state signature exists, with a written rationale for how it was
       derived. **Not started.**
 - [ ] That signature has been scored (AUCell) against the Sjögren's dataset, with a quantified
@@ -58,7 +57,7 @@ risky. Sjögren's is a reasonable first target to pair with MG because:
       target/drug list with provenance (which database, which gene, which compound). **Not
       started.**
 - [~] Every stage above has unit tests (synthetic fixtures) and the full pipeline has one integration
-      test (tiny fixture data) — all passing via `make test`. **Steps 1–2 fully covered (46 tests,
+      test (tiny fixture data) — all passing via `make test`. **Steps 1–2 fully covered (51 tests,
       100% coverage on all Step 1–2 modules, `make test` green); Steps 3–7 not yet built.**
 - [x] `README.md` documents how to set up the environment and run the Phase 1 pipeline
       end-to-end via `make phase1` (or equivalent). **Done in Phase 0**; will need a further update
@@ -132,14 +131,26 @@ runs `load_sjogrens` against it end-to-end. No `DATASETS.md` manifest file was c
 — the same information (accession, source, description, provenance) lives directly in
 `configs/phase1_mg_sjogrens.yaml`'s `datasets:` block, which is what `pipeline.py` actually reads.
 
-### Step 2 — QC, normalization, cell-type annotation — Status: ⚠️ Mostly complete, one gap (2026-08-27)
+### Step 2 — QC, normalization, cell-type annotation — Status: ✅ Complete (gap closed 2026-08-27)
 
-**Known gap:** the original plan called for doublet detection as part of QC ("mitochondrial %
-filtering, doublet detection") — this was **not implemented**. Only gene-count and mitochondrial-%
-filtering were built (`src/mg_thymus_map/qc/filters.py`). Doublets (two cells captured together,
-looking like one cell with blended gene expression) are still in the data. This should either be
-added before Step 3 starts, or explicitly accepted as a limitation and written into Step 7's
-Limitations section — not silently dropped. Recorded here so it isn't lost.
+**Doublet detection — added 2026-08-27, closing the gap flagged earlier the same day.** Built
+`src/mg_thymus_map/qc/doublets.py` (`detect_doublets`/`filter_doublets`), wrapping scanpy's
+Scrublet integration with `batch_key='sample_id'` so doublet simulation respects per-sample
+boundaries rather than pooling across samples. Motivation beyond generic hygiene: Step 3's planned
+cell–cell-communication analysis could misread a doublet's trivial co-expression of two cell types'
+genes as evidence of a real biological interaction — doublet contamination is a plausible source of
+a false positive for exactly the kind of finding this project is trying to make. **Real bug found
+while wiring this up:** running Scrublet on completely unfiltered data crashes — its internal
+per-batch processing silently drops near-zero-count cells (the same root cause as the earlier NaN
+mito bug), then fails writing results back for cells it dropped. Fixed by running doublet detection
+*after* `filter_cells`/`filter_genes`, not before. **Results on real data:** low flag rates across
+all three datasets — MG 23/45,686 (0.05%), Sjögren's 151/66,484 (0.23%), tonsil 11/26,972
+(0.04%) — noted honestly as an open observation (lower than the ~5% often quoted for droplet-based
+scRNA-seq; a plausible explanation is CellBender's own cell-calling already screening toward
+higher-confidence droplets, but this isn't asserted as proven). Combined dataset went from 139,142
+to 138,957 cells (185 removed, 0.13%) — small enough that re-running annotation + Harmony
+integration afterward produced essentially the same picture as before (same dominant cell types,
+same mixing pattern), which is itself a useful consistency check.
 
 **Goal:** each dataset becomes a clean, annotated `AnnData` on a shared cell-type vocabulary.
 
@@ -248,16 +259,17 @@ Step 2's.
   dataset of origin before trusting cross-dataset comparisons; apply integration (Harmony/scVI) if
   needed.
 
-**Tests: mostly done.** `compute_qc_metrics`/`filter_cells`/`filter_genes`/`adaptive_mito_threshold`/
+**Tests: done.** `compute_qc_metrics`/`filter_cells`/`filter_genes`/`adaptive_mito_threshold`/
 `normalize` all have unit tests against synthetic data with known outliers planted in (100% coverage
 on these modules); `combine_datasets`/`compute_cluster_composition` have unit tests;
-`integrate_with_harmony` has a real (not mocked) integration test since harmonypy is fast enough to
-run for real on tiny synthetic data; `annotate_cell_types` has a mocked unit test (CellTypist itself
-needs a downloaded model, exercised manually against real data instead, not in the automated
-suite). **Not done:** no doublet-detection tests, since doublet detection itself wasn't built (see the
-"Known gap" note above); no test that annotation output stays within an approved label vocabulary
-list — moot for now since CellTypist's own fixed label set is being used directly as the vocabulary,
-not a hand-maintained approved list.
+`integrate_with_harmony` and `detect_doublets` each have a real (not mocked) integration test since
+both harmonypy and Scrublet need no downloaded model and are fast enough to run for real on tiny
+synthetic data — this is what caught two of the real bugs described above; `filter_doublets` has
+pure unit tests; `annotate_cell_types` has a mocked unit test (CellTypist itself needs a downloaded
+model, exercised manually against real data instead, not in the automated suite). **Not done:** no
+test that annotation output stays within an approved label vocabulary list — moot for now since
+CellTypist's own fixed label set is being used directly as the vocabulary, not a hand-maintained
+approved list.
 
 **Open sub-question:** see section 7, question 4 (automated vs. manual annotation, and who
 reviews biological calls).
@@ -418,15 +430,16 @@ in CI); a test that the ranking/dedup logic behaves correctly on synthetic overl
 - [ ] `src/mg_thymus_map/stromal/` — subtraction / stromal extraction. **Not started (Step 5).**
 - [ ] `src/mg_thymus_map/pharma/` — DGIdb/ChEMBL clients + ranking. **Not started (Step 6).**
 - [x] `tests/unit/`, `tests/integration/`, `tests/fixtures/` covering all of the above. **Done for
-      Steps 1–2** (46 tests, 100% coverage on those modules); Steps 3–7 have none yet.
+      Steps 1–2** (51 tests, 100% coverage on those modules); Steps 3–7 have none yet.
 - [x] `README.md` — updated with Phase 1 setup/run instructions. **Done in Phase 0**; needs a
       revisit once `pipeline.py` actually orchestrates Step 3+ (currently config-loading only).
 - [x] `Makefile` — `make setup`, `make test`, `make phase1`. **Done in Phase 0.**
 - [ ] A short Phase 1 findings write-up, including the spatial/ground-truth cross-check (Steps 3, 5, 7 —
       reprocessed Visium data for MG's thymoma/hyperplasia paper; reported-findings comparison
       only for Sjögren's GSE272409, since it has no reprocessable spatial deposit) and a required
-      Limitations section (Step 7). **Not started** — depends on Steps 3–7. Should explicitly mention
-      the doublet-detection gap when written.
+      Limitations section (Step 7). **Not started** — depends on Steps 3–7. Should mention the
+      unusually low doublet rate found (0.04–0.23% across the three datasets, vs. ~5% typically
+      expected) as an open observation.
 
 ## 6. Risks & mitigations
 
@@ -610,9 +623,8 @@ because it's genuinely separate work by design:
 
 **Progress vs. plan:** running ahead of schedule. Phase 0 (Week 1's work) and all of Steps 1–2
 (originally Week 2's work, planned through Sep 8) were both actually completed by **2026-08-27**
-— i.e. Week 2's target was hit about 12 days early. One gap to account for: doublet detection
-(planned as part of Week 2) wasn't built (see Step 2's "Known gap" note) — worth either doing
-before Step 3, or explicitly budgeting a small amount of the schedule surplus for it.
+— i.e. Week 2's target was hit about 12 days early, including doublet detection (briefly a gap the
+same day, closed before end of day — see Step 2).
 
 | Week | Dates | Work | Est. hours | Avg/day (~6 active days) |
 |---|---|---|---|---|
