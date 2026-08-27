@@ -210,11 +210,17 @@ female/2 male (per GEO) and Sjögren's is a clinically female-predominant autoim
 comparing both against an all-male healthy control isn't a fair baseline, given well-documented
 sex-based differences in immune biology. **Fix:** added `load_donor_demographics` and
 `_select_balanced_donors` (`src/mg_thymus_map/data/healthy_tonsil.py`), which round-robins the
-selection across sex groups instead of taking a naive first-N. Now selects **BCLL-10-T (M),
-BCLL-11-T (F), BCLL-12-T (F), BCLL-14-T (M)** — 2/2 balanced. Also surfaced a clarification while
-checking this (not a bug): each selected donor contributes *multiple* separate 10x capture runs
-(e.g. BCLL-10-T alone has 3 distinct `gem_id` samples), so "4 donors" means more like 10-12 actual
-samples loaded, not 4 — legitimate, just worth knowing when reading raw cell counts.
+selection across sex groups instead of taking a naive first-N. Now selects **BCLL-10-T (M, 14,274
+cells), BCLL-11-T (F, 6,847), BCLL-12-T (F, 9,245), BCLL-14-T (M, 12,352)** — 2/2 balanced, one
+sample (`not_hashed` gem_id) per donor. (Correcting an inaccurate claim from an earlier check: each
+donor maps to exactly *one* `not_hashed` sample, not multiple capture runs — the initial check that
+suggested otherwise hadn't filtered to `not_hashed` first, so it was counting `hashed_cdna`/
+`hashed_hto` rows too.) The raw cell-count jump (30,103 → 42,718) is simple arithmetic: the old,
+accidentally-all-male selection happened to include the two *smallest* donors in the whole
+8-donor pool (BCLL-2-T at 1,918 cells and BCLL-8-T at 5,693 — the smallest and third-smallest of
+all 8), which the sex-balanced fix swapped out for meaningfully larger ones (BCLL-11-T and
+BCLL-14-T). BCLL-10-T, the single largest of all 8 donors (14,274 cells), stayed in both sets by
+coincidence.
 
 This changed tonsil's underlying data (different donors, more total cells), which cascades through
 QC and doublet detection — both had to be re-run.
