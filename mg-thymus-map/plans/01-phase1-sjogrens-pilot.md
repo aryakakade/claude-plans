@@ -57,8 +57,9 @@ risky. Sjögren's is a reasonable first target to pair with MG because:
       target/drug list with provenance (which database, which gene, which compound). **Not
       started.**
 - [~] Every stage above has unit tests (synthetic fixtures) and the full pipeline has one integration
-      test (tiny fixture data) — all passing via `make test`. **Steps 1–2 fully covered (56 tests,
-      100% coverage on all Step 1–2 modules, `make test` green); Steps 3–7 not yet built.**
+      test (tiny fixture data) — all passing via `make test`. **Steps 1–2 fully covered, Step 3
+      partially (cell-state calling + communication analysis covered; signature-merge/output artifact
+      not yet built) — 76 tests total, `make test` green; Steps 4–7 not yet built.**
 - [x] `README.md` documents how to set up the environment and run the Phase 1 pipeline
       end-to-end via `make phase1` (or equivalent). **Done in Phase 0**; will need a further update
       once Step 3+ stages are wired into `pipeline.py` (currently only loads/validates config).
@@ -385,9 +386,67 @@ approved list.
 **Open sub-question:** see section 7, question 4 (automated vs. manual annotation, and who
 reviews biological calls).
 
-### Step 3 — TLS isolation (from MG data only)
+### Step 3 — TLS isolation (from MG data only) — Status: 🔶 In progress (cell states + communication done 2026-08-27)
 
 **Goal:** derive "the MG immune structure" — the shared architecture to project onto Sjögren's.
+
+**Fine-grained cell-state calling — done 2026-08-27.** CellTypist's broad labels ('B cells', 'T
+cells') don't distinguish GC B cells or Tfh cells, so added a separate scoring pass:
+`src/mg_thymus_map/signature/markers.py` (literature-cited marker panels for GC B cells, Tfh, FDC,
+HEV — FDC/HEV included for completeness/reuse on Sjögren's and tonsil, but expected to find nothing
+against MG, which is CD45+-sorted and has no stromal cells) and
+`src/mg_thymus_map/signature/cell_states.py` (`score_cell_state` wraps scanpy's `score_genes`;
+`call_cell_state` flags a cell as the fine-grained type if its score is an outlier — mean + 2·std —
+*within* its own broad CellTypist category, the same adaptive-threshold pattern used for mito% and
+doublet-score cutoffs elsewhere in this project, rather than a hardcoded score cutoff). Run against
+real MG data (45,387 post-QC cells): **406/7,022 B cells (5.8%) called GC B cell-like**,
+**1,339/27,348 T cells (4.9%) called Tfh-like**. FDC check against MG's 0 fibroblasts correctly
+returned 0, as expected.
+
+**Cell–cell communication analysis — done 2026-08-27, investigated carefully rather than taken at
+face value.** Built `src/mg_thymus_map/signature/communication.py`
+(`build_tls_cell_group`/`run_communication_analysis`/`filter_between`/`find_pair`), wrapping
+`liana-py`'s consensus `rank_aggregate` (`use_raw=False`, since this project's saved AnnData objects
+carry log1p data in `.X` with no `.raw` set). Ran on real MG data (`n_perms=1000`) between the
+GC_B_cell (406 cells) and Tfh (1,339 cells) groups: 94 candidate interaction rows.
+
+Checked explicitly for four textbook GC/Tfh biology pairs before drawing any conclusion: **only
+CD40LG→CD40 (Tfh→GC_B_cell) was found**, ranked among the very top hits (specificity_rank 0.045,
+tied with the top tier) — LTB→CD40 (lymphotoxin-beta, itself a well-known TLS-organizing cytokine)
+and the CD28/CD80/CD86/CTLA4 costimulatory axis also appeared near the top. CXCL13-CXCR5,
+ICOS-ICOSLG, and IL21-IL21R were **not** found — not just filtered from this specific pairing, but
+absent from all 6,253 rows of the full all-groups output. Rather than treat this as either "liana
+confirmed everything" or "something's broken," checked raw per-group expression proportions
+directly against liana's `expr_prop=0.1` filter (minimum fraction of cells expressing a gene within
+each group, below which liana excludes the pair before scoring):
+
+| gene | role | GC_B_cell expr. | Tfh expr. | clears 10% floor? |
+|---|---|---|---|---|
+| CXCL13 | ligand | 1.0% | 5.2% | no, either group |
+| CXCR5 | receptor | 32.8% | 22.1% | yes |
+| ICOSLG | receptor | 0.2% | 0.0% | no, either group |
+| ICOS | ligand (Tfh side) | 4.2% | 91.6% | yes in Tfh |
+| IL21 | ligand | 0.2% | 5.0% | no, either group |
+| IL21R | receptor | 19.7% | 15.8% | yes |
+| CD40LG | ligand | 1.0% | 12.6% | **yes, barely, in Tfh** |
+| CD40 | receptor | 34.5% | 0.6% | yes |
+
+Every missing pair traces to its *ligand* failing the detection floor in both groups, and the one
+ligand that does clear it (CD40LG, at 12.6%) is exactly the one liana reports. This is the known
+scRNA-seq dropout problem for low-abundance, rapidly-secreted signaling molecules (CXCL13, IL21,
+ICOSLG are textbook examples — made, translated, and secreted fast enough that steady-state mRNA is
+barely captured) rather than a bug in the analysis or evidence the interactions aren't real.
+CXCL13 specifically is also expected to be weak here regardless, since it's predominantly an
+FDC/stromal product and MG has no stromal cells (CD45+-sorted).
+
+**Consequence for the signature/provenance design:** absence from liana's communication evidence
+must never be used to demote or remove a gene from the literature-anchored seed signature — it
+reflects a detection ceiling on secreted cytokines, not biology. Communication evidence (currently:
+CD40LG→CD40, LTB→CD40) should only ever *add* corroborated `mg_derived` entries on top of the
+`literature_prior` seed list, never gate it. Not yet implemented: the actual signature-merging step
+that combines the seed list + cell-state calls + communication evidence into the final versioned,
+provenance-tagged output artifact — that, plus the spatial validation sub-step below, are what's
+left to close out Step 3.
 
 - **Seed with the established 12-chemokine TLS signature** (per question 3's resolution), then
   refine using the MG data rather than deriving fully de novo.
@@ -549,12 +608,15 @@ in CI); a test that the ranking/dedup logic behaves correctly on synthetic overl
 - [x] `src/mg_thymus_map/qc/` — QC + normalization + annotation. **Done**, with the doublet-detection
       gap noted in Step 2. Also includes `annotate/` (CellTypist wrapper, a separate subpackage) and
       batch-effect/integration code (`qc/integration.py`) that wasn't originally itemized here.
-- [ ] `src/mg_thymus_map/signature/` — MG TLS signature derivation. **Not started (Step 3).**
+- [~] `src/mg_thymus_map/signature/` — MG TLS signature derivation. **In progress (Step 3): seed
+      signature, marker panels, cell-state calling, and cell–cell communication analysis done;
+      signature-merge/output artifact and spatial validation remain.**
 - [ ] `src/mg_thymus_map/scoring/` — AUCell projection + statistics. **Not started (Step 4).**
 - [ ] `src/mg_thymus_map/stromal/` — subtraction / stromal extraction. **Not started (Step 5).**
 - [ ] `src/mg_thymus_map/pharma/` — DGIdb/ChEMBL clients + ranking. **Not started (Step 6).**
 - [x] `tests/unit/`, `tests/integration/`, `tests/fixtures/` covering all of the above. **Done for
-      Steps 1–2** (56 tests, 100% coverage on those modules); Steps 3–7 have none yet.
+      Steps 1–2 and Step 3's work so far** (76 tests total, 100% coverage on covered modules);
+      Step 3's remaining sub-steps and Steps 4–7 have none yet.
 - [x] `README.md` — updated with Phase 1 setup/run instructions. **Done in Phase 0**; needs a
       revisit once `pipeline.py` actually orchestrates Step 3+ (currently config-loading only).
 - [x] `Makefile` — `make setup`, `make test`, `make phase1`. **Done in Phase 0.**
