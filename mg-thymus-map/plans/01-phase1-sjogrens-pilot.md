@@ -57,7 +57,7 @@ risky. Sjögren's is a reasonable first target to pair with MG because:
       target/drug list with provenance (which database, which gene, which compound). **Not
       started.**
 - [~] Every stage above has unit tests (synthetic fixtures) and the full pipeline has one integration
-      test (tiny fixture data) — all passing via `make test`. **Steps 1–2 fully covered (53 tests,
+      test (tiny fixture data) — all passing via `make test`. **Steps 1–2 fully covered (56 tests,
       100% coverage on all Step 1–2 modules, `make test` green); Steps 3–7 not yet built.**
 - [x] `README.md` documents how to set up the environment and run the Phase 1 pipeline
       end-to-end via `make phase1` (or equivalent). **Done in Phase 0**; will need a further update
@@ -99,7 +99,9 @@ documented, loadable form.
     (used `max_donors=4` for Phase 1, per the plan's subsampling call).
 - **Real cell counts loaded:** MG 52,269 cells (36,387 genes); Sjögren's 82,867 cells (13 samples: 7
   PSS + 6 SICCA, matching the earlier accession-resolution numbers); tonsil 30,103 cells (4 donors,
-  36,601 genes).
+  36,601 genes) — **superseded**: this donor selection turned out to be accidentally all-male (a real
+  bug found during Step 2's audit — see Step 2's third bug). Corrected tonsil count is 42,718 cells
+  (still 4 donors, now sex-balanced).
 - **Two files found in the Downloads folder that are explicitly NOT part of this project**, confirmed
   with the user: `GSE228033_RAW.tar` (an unrelated MG-thymoma scRNA-seq dataset) and an
   `ISEF_MG_PROJECT/mg_env` Python virtual environment (a separate, unrelated setup) — both
@@ -162,21 +164,76 @@ naive valley-finding can mistake a tiny KDE numerical ripple in a sparse tail fo
 peak — confirmed on synthetic unimodal test data, an artifact peak >400x smaller in density than
 the real one. Fixed with a minimum relative-prominence check.)
 
-**Corrected results, re-run after the fix:**
+**Corrected results after the pooled-threshold fix** (MG and Sjögren's numbers below are final;
+tonsil's were superseded by a second, unrelated fix — see below):
 
 | Dataset | Pooled threshold | Doublets flagged (before fix → after) |
 |---|---|---|
 | MG | 0.2990 | 23/45,686 (0.05%) → **299/45,686 (0.65%)** |
 | Sjögren's | 0.2769 | 151/66,484 (0.23%) → **546/66,484 (0.82%)** |
-| Tonsil | 0.3005 | 11/26,972 (0.04%) → **235/26,972 (0.87%)** |
+| Tonsil (old donor set) | 0.3005 | 11/26,972 (0.04%) → 235/26,972 (0.87%) — *superseded, see below* |
 
-Now consistent across all three datasets (0.65–0.87%) rather than wildly different, and no longer
-suspiciously low — still below the ~5% ballpark sometimes quoted, but that figure is itself a rough
-field-wide average, not a target to hit. Combined dataset: 139,142 → **138,062** cells (1,080
-removed, 0.78%, vs. the earlier incorrect 185/0.13%). Annotation + Harmony integration re-run
-again on the corrected data; same overall picture as before (same dominant cell types, same mixing
-pattern) — the correction changed *how many* doublets were caught, not the broader biological
-conclusions.
+Now consistent across all three datasets rather than wildly different, and no longer suspiciously
+low — still below the ~5% ballpark sometimes quoted, but that figure is itself a rough field-wide
+average, not a target to hit.
+
+---
+
+**Second real bug found the same day, while auditing this work at the user's request: CellTypist's
+`majority_voting=False` setting was the wrong choice.** `annotate_cell_types` originally used
+`majority_voting=False` (each cell classified independently, no neighborhood context) rather than
+`majority_voting=True` (a second automated pass where each cell's neighbors vote on its final
+label). Checked what this actually cost, rather than assumed it was fine: CellTypist's own
+`conf_score` showed a real low-confidence tail on all three datasets — MG 8.7% of cells below 0.5
+confidence, **Sjögren's 22.2%**, tonsil 3.4%. Ran both modes on real data and compared:
+
+| Dataset | Overall cells relabeled by majority voting | Of low-confidence (<0.5) cells, % relabeled |
+|---|---|---|
+| MG | 6.2% | 39.2% |
+| Sjögren's | 17.0% | 53.4% |
+| Tonsil | 3.5% | 30.9% |
+
+`majority_voting=True` is still fully automated (no manual curation) — same category as question
+4's resolution, just the better option within it, not a different one. Fixed to `majority_voting=True`
+(`src/mg_thymus_map/annotate/celltypist_annotate.py`); `majority_voting` (not `predicted_labels`)
+is now the column used downstream, documented as such.
+
+---
+
+**Third real bug found the same audit pass: tonsil's `max_donors` subsampling was accidentally
+all-male.** `load_healthy_tonsil`'s donor selection took the first N donors in whatever order they
+appeared in `cellranger_metadata.csv`. Checked what `max_donors=4` had actually picked: **BCLL-2-T,
+BCLL-8-T, BCLL-9-T, BCLL-10-T — all four male**, out of a pool that's 4 male / 4 female among the
+available `not_hashed` donors (not a coincidence of this run; the file happens to be ordered so all
+male donors' subprojects come first). A real, previously-uncorrected confound: MG is 10
+female/2 male (per GEO) and Sjögren's is a clinically female-predominant autoimmune disease —
+comparing both against an all-male healthy control isn't a fair baseline, given well-documented
+sex-based differences in immune biology. **Fix:** added `load_donor_demographics` and
+`_select_balanced_donors` (`src/mg_thymus_map/data/healthy_tonsil.py`), which round-robins the
+selection across sex groups instead of taking a naive first-N. Now selects **BCLL-10-T (M),
+BCLL-11-T (F), BCLL-12-T (F), BCLL-14-T (M)** — 2/2 balanced. Also surfaced a clarification while
+checking this (not a bug): each selected donor contributes *multiple* separate 10x capture runs
+(e.g. BCLL-10-T alone has 3 distinct `gem_id` samples), so "4 donors" means more like 10-12 actual
+samples loaded, not 4 — legitimate, just worth knowing when reading raw cell counts.
+
+This changed tonsil's underlying data (different donors, more total cells), which cascades through
+QC and doublet detection — both had to be re-run.
+
+**Consolidated final numbers, all three fixes applied together:**
+
+| Dataset | Mito threshold | Cells after QC | Doublet threshold | Doublets flagged | Final cells |
+|---|---|---|---|---|---|
+| MG | 9.5% | 45,686 | 0.2990 | 299 (0.65%) | 45,387 |
+| Sjögren's | 38.1% | 66,484 | 0.2769 | 546 (0.82%) | 65,938 |
+| Tonsil | **25.3%** (was 21.0%) | **38,273** (was 26,972) | 0.3300 | 201 (0.53%) | **38,072** (was 26,961) |
+| **Combined** | — | — | — | — | **149,397** (was 138,957 with the old donor set) |
+
+Annotation (with `majority_voting=True`) and Harmony integration re-run on this final data; same
+overall biological picture as every prior run (same dominant cell types per tissue, same broad
+mixing pattern) — if anything, mixing looks *slightly* better in a few clusters now (e.g. the
+fibroblast cluster picked up a real tonsil contribution it didn't have before, since the new donor
+set apparently has more of them) — the corrections changed the underlying numbers substantially
+without changing the qualitative conclusions, which is itself reassuring evidence of robustness.
 
 **Goal:** each dataset becomes a clean, annotated `AnnData` on a shared cell-type vocabulary.
 
@@ -185,11 +242,12 @@ conclusions.
 *QC thresholds actually used:* `min_genes_per_cell=200`, `min_cells_per_gene=3` (standard
 field defaults) plus a **per-dataset adaptive mitochondrial-% cutoff** (median + 5×MAD, capped
 at 50%) rather than one fixed number — computed values: MG 9.5%, Sjögren's 38.1%, tonsil
-21.0%. Rationale: germinal-center B cells and plasma cells (the exact populations this project
-cares about) naturally run metabolically "hot" and have legitimately elevated mitochondrial content
-— a single fixed cutoff risks systematically stripping them out. This was tested, not just argued:
-a stricter fixed 5% cutoff on MG would remove 39.0% of plasma cells and 50% of cycling cells
-(vs. 16.4% of T cells) — direct evidence a fixed cutoff disproportionately damages exactly the
+**25.3%** (recomputed after the donor-selection fix below; was 21.0% with the old, accidentally
+all-male donor set). Rationale: germinal-center B cells and plasma cells (the exact populations this
+project cares about) naturally run metabolically "hot" and have legitimately elevated mitochondrial
+content — a single fixed cutoff risks systematically stripping them out. This was tested, not just
+argued: a stricter fixed 5% cutoff on MG would remove 39.0% of plasma cells and 50% of cycling
+cells (vs. 16.4% of T cells) — direct evidence a fixed cutoff disproportionately damages exactly the
 cells this project is about. A stronger alternative (`min_genes=500`, `min_cells=10`) was also
 tested and rejected: it would cost ~23% of all cells overall, hitting Sjögren's hardest (whole-tissue,
 stromal cells naturally express fewer genes than immune cells) — risking exactly the stromal
@@ -197,9 +255,12 @@ populations Step 5 needs. Generic AI-sourced "rule of thumb" mito cutoffs (5% fo
 10–15% for Sjögren's, 8–10% for tonsil) were checked against real per-cell-type retention and
 rejected too: in every one of the three datasets, the suggested cutoffs would have stripped the
 *dominant* cell-type population far harder than a bulk population (e.g. Sjögren's at "lenient"
-10% would lose 57% of epithelial cells and 77.8% of B cells). **Retention at the chosen
-thresholds:** MG 87.4% cells kept (52,269→45,686), Sjögren's 80.2% (82,867→66,484), tonsil
-89.6% (30,103→26,972).
+10% would lose 57% of epithelial cells and 77.8% of B cells). (Note: the `500/10` and generic-advice
+comparisons above were run against tonsil's original — later found to be accidentally all-male —
+donor set; not re-verified against the corrected donor set, though the methodology conclusion,
+adaptive beats fixed, isn't expected to depend on which specific donors were used.) **Retention at
+the chosen thresholds:** MG 87.4% cells kept (52,269→45,686), Sjögren's 80.2% (82,867→66,484),
+tonsil 89.6% (42,718→38,273, with the corrected donor set).
 
 *Two real bugs found and fixed while running this against real data (not hypothetical):*
 1. `adaptive_mito_threshold` used `np.median`, which propagates `NaN`. MG's CellBender output has
@@ -220,18 +281,24 @@ between datasets and specifically broken compatibility with CellTypist annotatio
 datasets on purpose** — dataset-specific alternatives exist (`Cells_Human_Tonsil.pkl`,
 `Developing_Human_Thymus.pkl`) and are likely marginally more accurate in isolation, but each has
 its own private label vocabulary, which would break the cross-organ comparability Steps 3–4
-depend on. **Validation, not just plausibility-checking:** without ever telling the classifier which
-tissue was which, the results matched well-established biology for each: MG's top populations were
-T cells plus double-positive/double-negative thymocytes and an ETP population (textbook thymus
-T-cell developmental stages); Sjögren's largest population was plasma cells (matches Sjögren's
-well-known plasma-cell-rich pathology); tonsil's largest population was B cells at ~74% (tonsils
-are textbook B-cell-rich secondary lymphoid organs). This is strong evidence the QC/normalization
-upstream didn't corrupt the biology.
+depend on. Runs with `majority_voting=True` (see the "second real bug" note above for why —
+initially `False`, fixed during the same audit pass as the doublet-threshold and tonsil-donor bugs).
+**Validation, not just plausibility-checking:** without ever telling the classifier which tissue was
+which, the results matched well-established biology for each: MG's top populations were T cells
+plus double-positive/double-negative thymocytes and an ETP population (textbook thymus T-cell
+developmental stages); Sjögren's largest population was plasma cells (matches Sjögren's
+well-known plasma-cell-rich pathology); tonsil's largest population was B cells (tonsils are
+textbook B-cell-rich secondary lymphoid organs). Held up after the `majority_voting` fix and the
+tonsil donor-selection fix too — same qualitative picture on every re-run. This is strong evidence
+the QC/normalization upstream didn't corrupt the biology.
 
-*Batch/dataset-effect check — found a real, strong effect:* combining all three post-QC/annotated
-datasets (139,142 cells total) and clustering (PCA on batch-aware HVGs → neighbors → Leiden)
-showed nearly every cluster was 95–100% cells from a single dataset — cells were grouping by
-which study they came from, not by cell type, exactly the failure mode this check exists to catch.
+*Batch/dataset-effect check — found a real, strong effect:* first run, combining all three
+post-QC/annotated datasets (139,142 cells, before the doublet/majority-voting/tonsil-donor fixes
+below) and clustering (PCA on batch-aware HVGs → neighbors → Leiden), showed nearly every
+cluster was 95–100% cells from a single dataset — cells were grouping by which study they came
+from, not by cell type, exactly the failure mode this check exists to catch. Re-confirmed on the
+final, fully-corrected 149,397-cell dataset after all three fixes — same conclusion (batch effect is
+real, Harmony integration is needed).
 
 *Integration — Harmony, with a real library-compatibility bug found and fixed:*
 `scanpy.external.pp.harmony_integrate` (the standard way to call Harmony from scanpy) raises a
@@ -242,9 +309,9 @@ API where it was `(n_pcs, n_cells)` and needed an external `.T` — the wrapper'
 now breaks. Fixed by calling `harmonypy.run_harmony()` directly instead of going through scanpy's
 wrapper (`src/mg_thymus_map/qc/integration.py`). (Also documented, not fixed since it's not our
 bug: `harmonypy` itself crashes on very small inputs, <~75 cells, where its auto-picked cluster
-count comes out to exactly 1.) **After integration:** real, substantial mixing improvement for
-several clusters (e.g. one went from ~0% mixed to 34.5% MG / 15.1% Sjögren's / 50.4% tonsil).
-Many clusters remained dataset-pure even after integration — checked cell-type-by-cell-type rather
+count comes out to exactly 1.) **After integration (first run, illustrative):** real, substantial
+mixing improvement for several clusters (e.g. one went from ~0% mixed to 34.5% MG / 15.1%
+Sjögren's / 50.4% tonsil). Many clusters remained dataset-pure even after integration — checked cell-type-by-cell-type rather
 than assumed to be a failure, and traced to two legitimate, non-alarming causes: (a) cell types that
 structurally cannot exist in one of the datasets (MG is CD45+-sorted, so it has zero stromal cells
 and zero non-thymus-specific developmental states; those clusters staying MG-only or
@@ -254,8 +321,10 @@ the other two) causing numerically-dominated but still-genuinely-mixed clusters.
 clusters (a few hundred to a few thousand cells) remain genuinely ambiguous and are noted as such,
 not explained away.
 
-*Final combined+integrated object:* 139,142 cells, saved locally as `data/interim/harmonized.h5ad`
-(2.3 GB, gitignored — not committed to git, regenerable from raw data + this pipeline).
+*Final combined+integrated object:* **149,397 cells** (after all three bug fixes below: doublet
+pooled-threshold, `majority_voting=True`, tonsil sex-balanced donors), saved locally as
+`data/interim/harmonized.h5ad` (regenerated each time a fix changed the underlying data —
+gitignored, not committed to git, reproducible from raw data + this pipeline).
 
 *Vocabulary:* since one consistent CellTypist model was used, the cell-type labels are already a
 shared vocabulary by construction (no separate remapping step was needed, contrary to what this
@@ -464,7 +533,7 @@ in CI); a test that the ranking/dedup logic behaves correctly on synthetic overl
 - [ ] `src/mg_thymus_map/stromal/` — subtraction / stromal extraction. **Not started (Step 5).**
 - [ ] `src/mg_thymus_map/pharma/` — DGIdb/ChEMBL clients + ranking. **Not started (Step 6).**
 - [x] `tests/unit/`, `tests/integration/`, `tests/fixtures/` covering all of the above. **Done for
-      Steps 1–2** (53 tests, 100% coverage on those modules); Steps 3–7 have none yet.
+      Steps 1–2** (56 tests, 100% coverage on those modules); Steps 3–7 have none yet.
 - [x] `README.md` — updated with Phase 1 setup/run instructions. **Done in Phase 0**; needs a
       revisit once `pipeline.py` actually orchestrates Step 3+ (currently config-loading only).
 - [x] `Makefile` — `make setup`, `make test`, `make phase1`. **Done in Phase 0.**
@@ -472,9 +541,10 @@ in CI); a test that the ranking/dedup logic behaves correctly on synthetic overl
       reprocessed Visium data for MG's thymoma/hyperplasia paper; reported-findings comparison
       only for Sjögren's GSE272409, since it has no reprocessable spatial deposit), the ambient-RNA
       correction inconsistency (see Step 7's Limitations note), and a required Limitations section
-      (Step 7). **Not started** — depends on Steps 3–7. The doublet-rate figures are settled (0.65–
-      0.87% across all three datasets, after fixing the per-sample-threshold bug — see Step 2), not
-      an open observation anymore.
+      (Step 7). **Not started** — depends on Steps 3–7. Worth including in that section: doublet
+      rates (settled at 0.53–0.87% across all three datasets), the `majority_voting` annotation fix,
+      and the tonsil donor sex-balance fix — all three found during a deliberate audit pass
+      (2026-08-27, user asked to "recheck everything"), not left as open observations.
 
 ## 6. Risks & mitigations
 
