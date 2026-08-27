@@ -1,6 +1,8 @@
 # MG Thymus Map — Overall Project Plan
 
-Status: **DRAFT — planning only, no code written yet.**
+Status: **In progress.** Phase 0 and Phase 1 Steps 1–2 are implemented and verified against real
+data as of 2026-08-27 — see [`01-phase1-sjogrens-pilot.md`](01-phase1-sjogrens-pilot.md) for
+detailed implementation notes, real bugs found/fixed, and results.
 Source material: [`docs/project-introduction.txt`](../docs/project-introduction.txt) (extracted from the original PDF), by Arya Kakade — *"A Thymus-Anchored Map of Tertiary Lymphoid Structures Across Multiple Autoimmune Diseases."*
 
 ---
@@ -76,7 +78,7 @@ logic right) concentrated in one phase instead of six.
 | Phase | Focus | Depends on | Key deliverable |
 |---|---|---|---|
 | 0 | Foundations & infra | — | Repo scaffold, env, data conventions, test harness (no biology yet) |
-| 1 | **MG vs. Sjögren's pilot** | 0 | End-to-end pipeline proven on one disease pair — see [`01-phase1-sjogrens-pilot.md`](01-phase1-sjogrens-pilot.md) |
+| 1 | **MG vs. Sjögren's pilot** — 🔵 in progress, Steps 1–2 of 7 done (2026-08-27) | 0 | End-to-end pipeline proven on one disease pair — see [`01-phase1-sjogrens-pilot.md`](01-phase1-sjogrens-pilot.md) |
 | 2 | Extend → Rheumatoid Arthritis (synovium) | 1 | Pipeline replayed on RA; pipeline made disease-agnostic (config, not code, changes per disease) |
 | 3 | Extend → SLE | 1–2 | Same, for SLE |
 | 4 | Extend → Graves' Disease (thyroid) | 1–2 | Same, for Graves' |
@@ -120,19 +122,19 @@ Planning docs (this file and phase plans) and the original source material live 
 in `claude-plans/mg-thymus-map/plans/` and `claude-plans/mg-thymus-map/docs/` respectively —
 not inside the code repo itself.
 
-## 6. Tech stack candidates (pending decisions — see Open Questions)
+## 6. Tech stack (confirmed choices marked ✅; rest still candidates — see Open Questions)
 
-| Concern | Candidate | Notes |
+| Concern | Choice | Notes |
 |---|---|---|
-| Core data model | `scanpy` + `anndata` | Standard for scRNA-seq in Python |
-| Env/deps | `conda`/`mamba` via `environment.yml`, or `uv`/`poetry` via `pyproject.toml` | Bioinformatics stack (leiden, scanpy, scvi-tools) often easier via conda-forge/bioconda |
-| Batch correction / integration | `scanpy.external` (Harmony) or `scvi-tools` | Needed once we combine MG + disease + control in one embedding |
-| Cell-type annotation | `celltypist` (reference-based) or marker-gene scoring | Need a consistent ontology across organs |
-| Gene-set / AUCell scoring | `decoupler-py` (has an AUCell-equivalent, actively maintained) vs. `pyscenic.aucell` | `decoupler` is lighter-weight and doesn't require the full SCENIC regulon pipeline |
-| Cell–cell communication (for "TLS isolation") | `squidpy` / `liana-py` | Python equivalents of CellPhoneDB/CellChat |
-| Drug/target lookup | `requests` against DGIdb GraphQL API and ChEMBL REST API | Both have public, unauthenticated APIs |
-| Testing | `pytest` + `pytest-cov` | Standard |
-| Data validation | `pandera` (for `obs`/`var` DataFrames) or hand-written schema checks | |
+| Core data model | ✅ `scanpy` + `anndata` | Standard for scRNA-seq in Python |
+| Env/deps | ✅ `uv` + `pyproject.toml` | Confirmed §9 question 2; `uv.lock` committed |
+| Batch correction / integration | ✅ `harmonypy`, called **directly**, not via `scanpy.external.pp.harmony_integrate` | That wrapper is broken against every currently-installable `harmonypy` (0.2.0 and 2.0.0 both tested) — a real version-compatibility bug, not a data problem. See `01-phase1-sjogrens-pilot.md` Step 2 implementation notes for the full diagnosis. `scvi-tools` remains a candidate for later phases if Harmony proves insufficient at larger scale (Phase 5). |
+| Cell-type annotation | ✅ `celltypist` v1.7.1, model `Immune_All_High.pkl` | One consistent model across all datasets (not per-tissue models, despite dedicated ones existing) for cross-organ label comparability — validated against real biology per tissue, see Step 2 notes |
+| Gene-set / AUCell scoring | `decoupler-py` (has an AUCell-equivalent, actively maintained) vs. `pyscenic.aucell` | Still a candidate — not yet used (Step 4) |
+| Cell–cell communication (for "TLS isolation") | `squidpy` / `liana-py` | Still a candidate — not yet used (Step 3) |
+| Drug/target lookup | `requests` against DGIdb GraphQL API and ChEMBL REST API | Still a candidate — not yet used (Step 6) |
+| Testing | ✅ `pytest` + `pytest-cov` | 46 tests, 100% coverage on Steps 1–2 modules as of 2026-08-27 |
+| Data validation | ✅ Hand-written schema checks (`SchemaError`/`validate_dataset`), not `pandera` | Simple enough (3 required `obs` columns) that `pandera` wasn't needed; revisit if schema needs grow more complex in later steps |
 
 ## 7. Testing strategy (applies from Phase 0 onward)
 

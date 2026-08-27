@@ -1,6 +1,10 @@
 # Phase 1 Plan — MG (Thymus) vs. Sjögren's Syndrome Pilot
 
-Status: **DRAFT — planning only, no code written yet.**
+Status: **In progress.** Phase 0 (repo scaffold) and Phase 1 Steps 1–2 (data
+assembly, QC/normalization/annotation/integration) are implemented, tested, and
+verified against real downloaded data as of 2026-08-27 — see the "Implementation
+notes" under each step below for what was actually built and found. Steps 3–7 are
+still at the planning stage, not yet started.
 Parent plan: [`00-overview.md`](00-overview.md)
 
 ## 1. Why Sjögren's Syndrome first
@@ -20,9 +24,7 @@ risky. Sjögren's is a reasonable first target to pair with MG because:
 - Public scRNA-seq datasets for Sjögren's salivary gland exist and are a similar scale to thymus MG
   datasets, keeping the pilot's compute footprint modest.
 
-**This is a proposed rationale, not a confirmed one — see Open Questions below**, particularly if
-you already have specific datasets in mind that point toward a different disease being the easier
-first pairing.
+**Confirmed** — see question 2 in section 7 (Resolved).
 
 ## 2. Objectives
 
@@ -36,31 +38,73 @@ first pairing.
 
 ## 3. Definition of done for Phase 1
 
-- [ ] MG thymus, Sjögren's salivary gland, and healthy tonsil scRNA-seq datasets are downloaded,
-      documented (source, accession, license), and load cleanly into `anndata` objects.
-- [ ] QC + normalization + cell-type annotation produces a labeled MG dataset and a labeled
-      Sjögren's dataset with a shared, consistent cell-type vocabulary.
+- [x] MG thymus, Sjögren's salivary gland, and healthy tonsil scRNA-seq datasets are downloaded,
+      documented (source, accession, license), and load cleanly into `anndata` objects. **Done
+      2026-08-26/27** — see Step 1 implementation notes.
+- [~] QC + normalization + cell-type annotation produces a labeled MG dataset and a labeled
+      Sjögren's dataset with a shared, consistent cell-type vocabulary. **Mostly done 2026-08-27**
+      — see Step 2 implementation notes. Extended beyond the original wording: all *three* datasets
+      are QC'd/normalized/annotated, and a batch-effect check + Harmony integration was added —
+      not originally itemized here, but necessary to trust the shared vocabulary across datasets.
+      **One gap:** doublet detection (originally planned as part of QC) was not implemented — see
+      Step 2's "Known gap" note.
 - [ ] An MG-derived TLS gene/cell-state signature exists, with a written rationale for how it was
-      derived.
+      derived. **Not started.**
 - [ ] That signature has been scored (AUCell) against the Sjögren's dataset, with a quantified
-      "proportion shared" metric, benchmarked against the healthy tonsil control.
+      "proportion shared" metric, benchmarked against the healthy tonsil control. **Not started.**
 - [ ] Stromal populations in Sjögren's have been isolated after subtracting the shared signal, with a
-      ranked marker-gene list.
+      ranked marker-gene list. **Not started.**
 - [ ] Those markers have been queried against DGIdb/ChEMBL, producing a ranked candidate
-      target/drug list with provenance (which database, which gene, which compound).
-- [ ] Every stage above has unit tests (synthetic fixtures) and the full pipeline has one integration
-      test (tiny fixture data) — all passing via `make test`.
-- [ ] `README.md` documents how to set up the environment and run the Phase 1 pipeline
-      end-to-end via `make phase1` (or equivalent).
+      target/drug list with provenance (which database, which gene, which compound). **Not
+      started.**
+- [~] Every stage above has unit tests (synthetic fixtures) and the full pipeline has one integration
+      test (tiny fixture data) — all passing via `make test`. **Steps 1–2 fully covered (46 tests,
+      100% coverage on all Step 1–2 modules, `make test` green); Steps 3–7 not yet built.**
+- [x] `README.md` documents how to set up the environment and run the Phase 1 pipeline
+      end-to-end via `make phase1` (or equivalent). **Done in Phase 0**; will need a further update
+      once Step 3+ stages are wired into `pipeline.py` (currently only loads/validates config).
 - [ ] A short written summary of Phase 1 findings exists (even if preliminary/negative) — a
-      pipeline that runs but finds no shared signal is still a valid, useful Phase 1 result.
+      pipeline that runs but finds no shared signal is still a valid, useful Phase 1 result. **Not
+      started** — depends on Steps 3–7.
 
 ## 4. Step-by-step plan
 
-### Step 1 — Data assembly
+### Step 1 — Data assembly — Status: ✅ Complete (2026-08-26/27)
 
 **Goal:** get MG (thymus), Sjögren's (salivary gland), and healthy tonsil scRNA-seq into local,
 documented, loadable form.
+
+**Implementation notes (what was actually built and found):**
+- Code: `src/mg_thymus_map/data/{mg_thymus,sjogrens,healthy_tonsil,_common,schema}.py` in the
+  `mg-thymus-map` repo. 22 tests (unit + one real integration test against a self-built synthetic
+  10x sample), all passing, no dependency on the real downloaded data (which is gitignored).
+- **Real file formats, confirmed by inspection (not assumed from the GEO/Zenodo page text):**
+  - **MG (GSE233180):** the `.h5` files are **CellBender-denoised** output (ambient-RNA-corrected
+    counts), not raw CellRanger — confirmed via the internal HDF5 structure (`latent_cell_probability`,
+    `contamination_fraction_params`, `ambient_expression`, `training_elbo_per_epoch` are CellBender
+    signatures). `scanpy.read_10x_h5` reads it directly with no special handling needed. **Correction
+    to the dataset description**: GEO's "24 samples" is 12 patients' scRNA-seq `.h5` files
+    (MG1–MG12) **plus 12 separate BCR repertoire-seq files** (V(D)J immune repertoire — a
+    different assay, not gene expression) — not 24 scRNA-seq samples. Only the 12 `.h5` files are
+    used; the BCR data is a candidate bonus dataset for a later phase, not loaded here.
+  - **Sjögren's (GSE272409):** GSM-prefixed flat 10x mtx triplets (e.g.
+    `GSM8401511_PSS_A_{barcodes,features,matrix}...`). `scanpy.read_10x_mtx`'s `prefix` parameter
+    handles this directly — no custom parser needed.
+  - **Tonsil (Zenodo 10373041):** nested per-donor CellRanger output,
+    `scRNA-seq/<subproject>/<gem_id>/filtered_feature_bc_matrix/`, joined against the atlas's own
+    `scRNA-seq/metadata/cellranger_metadata.csv` (columns: `subproject, gem_id, library_id,
+    library_name, type, donor_id`) to map each folder to a donor. Only `type == "not_hashed"`
+    libraries are used — each maps to exactly one donor unambiguously; `hashed_cdna`/`hashed_hto`
+    libraries pool multiple donors per 10x GEM well and would need HTO demultiplexing to resolve
+    per-cell donor identity, out of scope for Phase 1. `max_donors` parameter subsamples the atlas
+    (used `max_donors=4` for Phase 1, per the plan's subsampling call).
+- **Real cell counts loaded:** MG 52,269 cells (36,387 genes); Sjögren's 82,867 cells (13 samples: 7
+  PSS + 6 SICCA, matching the earlier accession-resolution numbers); tonsil 30,103 cells (4 donors,
+  36,601 genes).
+- **Two files found in the Downloads folder that are explicitly NOT part of this project**, confirmed
+  with the user: `GSE228033_RAW.tar` (an unrelated MG-thymoma scRNA-seq dataset) and an
+  `ISEF_MG_PROJECT/mg_env` Python virtual environment (a separate, unrelated setup) — both
+  ignored, not incorporated.
 
 - Confirmed accessions (see question 1's resolution): **GSE233180** (MG thymus), **GSE272409**
   (Sjögren's salivary gland), and the **Human Tonsil Atlas** / ArrayExpress **E-MTAB-13687**
@@ -80,13 +124,109 @@ documented, loadable form.
 - Validate on load: expected `AnnData` shape, gene symbols present, `obs` has the metadata
   columns the rest of the pipeline needs (disease, tissue, donor/sample ID).
 
-**Tests to add later:** a loader unit test against a tiny synthetic `.h5ad` fixture (shape/column
-checks) for each of the three loader code paths (two GEO, one Zenodo/Bioconductor-derived); a
-manifest schema test (every entry in `DATASETS.md`/config has the required fields).
+**Tests: done.** Per-loader unit tests (filename parsing, sample-ID/disease-status mapping,
+donor-metadata selection logic — all pure functions, no real data needed) plus a schema validator
+(`SchemaError`/`validate_dataset`, required `obs` columns: `sample_id`, `disease`, `tissue`) with its
+own tests, plus one real integration test that builds a tiny synthetic 10x mtx sample on the fly and
+runs `load_sjogrens` against it end-to-end. No `DATASETS.md` manifest file was created separately
+— the same information (accession, source, description, provenance) lives directly in
+`configs/phase1_mg_sjogrens.yaml`'s `datasets:` block, which is what `pipeline.py` actually reads.
 
-### Step 2 — QC, normalization, cell-type annotation
+### Step 2 — QC, normalization, cell-type annotation — Status: ⚠️ Mostly complete, one gap (2026-08-27)
+
+**Known gap:** the original plan called for doublet detection as part of QC ("mitochondrial %
+filtering, doublet detection") — this was **not implemented**. Only gene-count and mitochondrial-%
+filtering were built (`src/mg_thymus_map/qc/filters.py`). Doublets (two cells captured together,
+looking like one cell with blended gene expression) are still in the data. This should either be
+added before Step 3 starts, or explicitly accepted as a limitation and written into Step 7's
+Limitations section — not silently dropped. Recorded here so it isn't lost.
 
 **Goal:** each dataset becomes a clean, annotated `AnnData` on a shared cell-type vocabulary.
+
+**Implementation notes (what was actually built, decided, and found):**
+
+*QC thresholds actually used:* `min_genes_per_cell=200`, `min_cells_per_gene=3` (standard
+field defaults) plus a **per-dataset adaptive mitochondrial-% cutoff** (median + 5×MAD, capped
+at 50%) rather than one fixed number — computed values: MG 9.5%, Sjögren's 38.1%, tonsil
+21.0%. Rationale: germinal-center B cells and plasma cells (the exact populations this project
+cares about) naturally run metabolically "hot" and have legitimately elevated mitochondrial content
+— a single fixed cutoff risks systematically stripping them out. This was tested, not just argued:
+a stricter fixed 5% cutoff on MG would remove 39.0% of plasma cells and 50% of cycling cells
+(vs. 16.4% of T cells) — direct evidence a fixed cutoff disproportionately damages exactly the
+cells this project is about. A stronger alternative (`min_genes=500`, `min_cells=10`) was also
+tested and rejected: it would cost ~23% of all cells overall, hitting Sjögren's hardest (whole-tissue,
+stromal cells naturally express fewer genes than immune cells) — risking exactly the stromal
+populations Step 5 needs. Generic AI-sourced "rule of thumb" mito cutoffs (5% for immune-only,
+10–15% for Sjögren's, 8–10% for tonsil) were checked against real per-cell-type retention and
+rejected too: in every one of the three datasets, the suggested cutoffs would have stripped the
+*dominant* cell-type population far harder than a bulk population (e.g. Sjögren's at "lenient"
+10% would lose 57% of epithelial cells and 77.8% of B cells). **Retention at the chosen
+thresholds:** MG 87.4% cells kept (52,269→45,686), Sjögren's 80.2% (82,867→66,484), tonsil
+89.6% (30,103→26,972).
+
+*Two real bugs found and fixed while running this against real data (not hypothetical):*
+1. `adaptive_mito_threshold` used `np.median`, which propagates `NaN`. MG's CellBender output has
+   genuine zero-total-count cells (0/0 = NaN mito%), which silently poisoned the threshold for the
+   *entire* dataset. Fixed with `np.nanmedian`.
+2. The MAD-based approach can degrade toward the plain median if >50% of cells share
+   near-identical mito% (documented as a known caveat in the code — not hit by the real data, but a
+   real edge case).
+
+*Normalization:* `log1p` with `target_sum=1e4` (the field-standard convention — Seurat's
+LogNormalize, scanpy tutorials, and critically CellTypist's own training convention all assume
+this). **Bug found and fixed:** the first version let `scanpy.pp.normalize_total` use its
+per-dataset-median default instead of the fixed 1e4, which would have broken comparability
+between datasets and specifically broken compatibility with CellTypist annotation (next).
+
+*Annotation:* [CellTypist](https://www.celltypist.org/) v1.7.1, model **`Immune_All_High.pkl`**
+(one of 61 available models, pulled fresh from celltypist.org), used **consistently across all three
+datasets on purpose** — dataset-specific alternatives exist (`Cells_Human_Tonsil.pkl`,
+`Developing_Human_Thymus.pkl`) and are likely marginally more accurate in isolation, but each has
+its own private label vocabulary, which would break the cross-organ comparability Steps 3–4
+depend on. **Validation, not just plausibility-checking:** without ever telling the classifier which
+tissue was which, the results matched well-established biology for each: MG's top populations were
+T cells plus double-positive/double-negative thymocytes and an ETP population (textbook thymus
+T-cell developmental stages); Sjögren's largest population was plasma cells (matches Sjögren's
+well-known plasma-cell-rich pathology); tonsil's largest population was B cells at ~74% (tonsils
+are textbook B-cell-rich secondary lymphoid organs). This is strong evidence the QC/normalization
+upstream didn't corrupt the biology.
+
+*Batch/dataset-effect check — found a real, strong effect:* combining all three post-QC/annotated
+datasets (139,142 cells total) and clustering (PCA on batch-aware HVGs → neighbors → Leiden)
+showed nearly every cluster was 95–100% cells from a single dataset — cells were grouping by
+which study they came from, not by cell type, exactly the failure mode this check exists to catch.
+
+*Integration — Harmony, with a real library-compatibility bug found and fixed:*
+`scanpy.external.pp.harmony_integrate` (the standard way to call Harmony from scanpy) raises a
+shape-mismatch error against **every currently-installable `harmonypy` version** (tried 0.2.0 and
+2.0.0 — both fail identically). Root cause confirmed by direct inspection: `harmonypy`'s `Z_corr`
+now returns already shaped `(n_cells, n_pcs)`, but scanpy's wrapper was written against an older
+API where it was `(n_pcs, n_cells)` and needed an external `.T` — the wrapper's extra transpose
+now breaks. Fixed by calling `harmonypy.run_harmony()` directly instead of going through scanpy's
+wrapper (`src/mg_thymus_map/qc/integration.py`). (Also documented, not fixed since it's not our
+bug: `harmonypy` itself crashes on very small inputs, <~75 cells, where its auto-picked cluster
+count comes out to exactly 1.) **After integration:** real, substantial mixing improvement for
+several clusters (e.g. one went from ~0% mixed to 34.5% MG / 15.1% Sjögren's / 50.4% tonsil).
+Many clusters remained dataset-pure even after integration — checked cell-type-by-cell-type rather
+than assumed to be a failure, and traced to two legitimate, non-alarming causes: (a) cell types that
+structurally cannot exist in one of the datasets (MG is CD45+-sorted, so it has zero stromal cells
+and zero non-thymus-specific developmental states; those clusters staying MG-only or
+Sjögren's/tonsil-only is *correct*, not under-correction), and (b) large population-size differences
+between datasets (Sjögren's has ~100x more plasma cells than MG; tonsil has far more B cells than
+the other two) causing numerically-dominated but still-genuinely-mixed clusters. A small number of
+clusters (a few hundred to a few thousand cells) remain genuinely ambiguous and are noted as such,
+not explained away.
+
+*Final combined+integrated object:* 139,142 cells, saved locally as `data/interim/harmonized.h5ad`
+(2.3 GB, gitignored — not committed to git, regenerable from raw data + this pipeline).
+
+*Vocabulary:* since one consistent CellTypist model was used, the cell-type labels are already a
+shared vocabulary by construction (no separate remapping step was needed, contrary to what this
+step originally anticipated). What CellTypist's `Immune_All_High` does *not* cover: follicular
+dendritic cells (FDC) and high endothelial venules (HEV) specifically — these are subtypes within
+its generic "Fibroblasts"/"Endothelial cells" categories, not broken out. Per the original plan, this
+level of TLS-specific marker-based refinement is Step 3's job (deriving the MG signature), not
+Step 2's.
 
 - Per-dataset QC: min genes/cell, min cells/gene, mitochondrial % filtering, doublet detection.
   Thresholds should be config values, not hardcoded, since different datasets/platforms need
@@ -108,9 +248,16 @@ manifest schema test (every entry in `DATASETS.md`/config has the required field
   dataset of origin before trusting cross-dataset comparisons; apply integration (Harmony/scVI) if
   needed.
 
-**Tests to add later:** unit tests for QC filter functions on synthetic data with known
-outliers/doublets planted in; a check that annotation output only ever uses labels from the
-approved shared vocabulary (fails loudly on an unexpected label).
+**Tests: mostly done.** `compute_qc_metrics`/`filter_cells`/`filter_genes`/`adaptive_mito_threshold`/
+`normalize` all have unit tests against synthetic data with known outliers planted in (100% coverage
+on these modules); `combine_datasets`/`compute_cluster_composition` have unit tests;
+`integrate_with_harmony` has a real (not mocked) integration test since harmonypy is fast enough to
+run for real on tiny synthetic data; `annotate_cell_types` has a mocked unit test (CellTypist itself
+needs a downloaded model, exercised manually against real data instead, not in the automated
+suite). **Not done:** no doublet-detection tests, since doublet detection itself wasn't built (see the
+"Known gap" note above); no test that annotation output stays within an approved label vocabulary
+list — moot for now since CellTypist's own fixed label set is being used directly as the vocabulary,
+not a hand-maintained approved list.
 
 **Open sub-question:** see section 7, question 4 (automated vs. manual annotation, and who
 reviews biological calls).
@@ -259,20 +406,27 @@ in CI); a test that the ranking/dedup logic behaves correctly on synthetic overl
 
 ## 5. Deliverables checklist
 
-- `data/DATASETS.md` (or config) — dataset manifest with provenance
-- `src/mg_thymus_map/data/` — download + load + validate
-- `src/mg_thymus_map/qc/` — QC + normalization + annotation
-- `src/mg_thymus_map/signature/` — MG TLS signature derivation
-- `src/mg_thymus_map/scoring/` — AUCell projection + statistics
-- `src/mg_thymus_map/stromal/` — subtraction / stromal extraction
-- `src/mg_thymus_map/pharma/` — DGIdb/ChEMBL clients + ranking
-- `tests/unit/`, `tests/integration/`, `tests/fixtures/` covering all of the above
-- `README.md` — updated with Phase 1 setup/run instructions
-- `Makefile` — `make setup`, `make test`, `make phase1`
-- A short Phase 1 findings write-up, including the spatial/ground-truth cross-check (Steps 3, 5, 7 —
-  reprocessed Visium data for MG's thymoma/hyperplasia paper; reported-findings comparison
-  only for Sjögren's GSE272409, since it has no reprocessable spatial deposit) and a required
-  Limitations section (Step 7)
+- [~] `data/DATASETS.md` (or config) — dataset manifest with provenance. **Done via config, not a
+      separate file**: `configs/phase1_mg_sjogrens.yaml`'s `datasets:` block.
+- [x] `src/mg_thymus_map/data/` — download + load + validate. **Done** (loaders only; the
+      download itself was done manually by the user, not scripted — see Step 1's plan-vs-actual).
+- [x] `src/mg_thymus_map/qc/` — QC + normalization + annotation. **Done**, with the doublet-detection
+      gap noted in Step 2. Also includes `annotate/` (CellTypist wrapper, a separate subpackage) and
+      batch-effect/integration code (`qc/integration.py`) that wasn't originally itemized here.
+- [ ] `src/mg_thymus_map/signature/` — MG TLS signature derivation. **Not started (Step 3).**
+- [ ] `src/mg_thymus_map/scoring/` — AUCell projection + statistics. **Not started (Step 4).**
+- [ ] `src/mg_thymus_map/stromal/` — subtraction / stromal extraction. **Not started (Step 5).**
+- [ ] `src/mg_thymus_map/pharma/` — DGIdb/ChEMBL clients + ranking. **Not started (Step 6).**
+- [x] `tests/unit/`, `tests/integration/`, `tests/fixtures/` covering all of the above. **Done for
+      Steps 1–2** (46 tests, 100% coverage on those modules); Steps 3–7 have none yet.
+- [x] `README.md` — updated with Phase 1 setup/run instructions. **Done in Phase 0**; needs a
+      revisit once `pipeline.py` actually orchestrates Step 3+ (currently config-loading only).
+- [x] `Makefile` — `make setup`, `make test`, `make phase1`. **Done in Phase 0.**
+- [ ] A short Phase 1 findings write-up, including the spatial/ground-truth cross-check (Steps 3, 5, 7 —
+      reprocessed Visium data for MG's thymoma/hyperplasia paper; reported-findings comparison
+      only for Sjögren's GSE272409, since it has no reprocessable spatial deposit) and a required
+      Limitations section (Step 7). **Not started** — depends on Steps 3–7. Should explicitly mention
+      the doublet-detection gap when written.
 
 ## 6. Risks & mitigations
 
@@ -454,10 +608,16 @@ because it's genuinely separate work by design:
 
 ### Week-by-week plan (2026-08-26 → 2026-09-30, ~34 days)
 
+**Progress vs. plan:** running ahead of schedule. Phase 0 (Week 1's work) and all of Steps 1–2
+(originally Week 2's work, planned through Sep 8) were both actually completed by **2026-08-27**
+— i.e. Week 2's target was hit about 12 days early. One gap to account for: doublet detection
+(planned as part of Week 2) wasn't built (see Step 2's "Known gap" note) — worth either doing
+before Step 3, or explicitly budgeting a small amount of the schedule surplus for it.
+
 | Week | Dates | Work | Est. hours | Avg/day (~6 active days) |
 |---|---|---|---|---|
-| 1 | Aug 26 – Sep 1 | Phase 0: proper repo scaffold (`uv` + `pyproject.toml`, `src/mg_thymus_map/` layout, `configs/`, `tests/{unit,integration,fixtures}`), `pytest` + coverage wired up, `Makefile` (`setup`/`test`/`phase1`). Kick off downloads for all 3 datasets (GSE233180, GSE272409, Human Tonsil Atlas) — start early since the tonsil atlas's Zenodo/Bioconductor distribution needs its own loader path. | ~15–20 | ~2.5–3.5 hrs |
-| 2 | Sep 2 – Sep 8 | Steps 1–2 in full: load, QC, normalize, and annotate all 3 datasets onto the shared cell-type vocabulary; batch/dataset-effect check and integration (Harmony/scVI) if needed. Unit tests for QC filters and vocabulary validation written alongside, not bolted on after. This is historically where real-data pipelines lose the most time to surprises (mismatched gene symbols, unexpected metadata gaps) — the extra week of buffer here is deliberate. | ~30–40 | ~5–6.5 hrs |
+| 1 | Aug 26 – Sep 1 | ✅ **Actually done Aug 26.** Phase 0: proper repo scaffold (`uv` + `pyproject.toml`, `src/mg_thymus_map/` layout, `configs/`, `tests/{unit,integration,fixtures}`), `pytest` + coverage wired up, `Makefile` (`setup`/`test`/`phase1`). Kick off downloads for all 3 datasets (GSE233180, GSE272409, Human Tonsil Atlas) — start early since the tonsil atlas's Zenodo/Bioconductor distribution needs its own loader path. | ~15–20 | ~2.5–3.5 hrs |
+| 2 | Sep 2 – Sep 8 | ✅ **Actually done Aug 26–27, ~11 days early.** Steps 1–2 in full: load, QC, normalize, and annotate all 3 datasets onto the shared cell-type vocabulary; batch/dataset-effect check and integration (Harmony/scVI) if needed. Unit tests for QC filters and vocabulary validation written alongside, not bolted on after. This is historically where real-data pipelines lose the most time to surprises (mismatched gene symbols, unexpected metadata gaps) — the extra week of buffer here is deliberate. **Actual surprises hit:** real bugs (not gene-symbol mismatches, but a NaN-propagation bug, a normalization-target bug, and a harmonypy/scanpy version-compatibility bug), all found and fixed; doublet detection didn't get built. | ~30–40 | ~5–6.5 hrs |
 | 3 | Sep 9 – Sep 15 | Step 3 in full: TLS signature seeded with the 12-chemokine prior and refined on MG data, with provenance tagging; cell–cell communication analysis (`liana-py`/`squidpy`); **full spatial validation** — reprocess the MG Cell Reports Visium data with our own AUCell scoring against the derived signature, not the gene-overlap fallback. Unit tests for signature determinism and schema. | ~25–35 | ~4–5.5 hrs |
 | 4 | Sep 16 – Sep 22 | Step 4: AUCell cross-disease projection onto Sjögren's + tonsil, with proper statistics (distribution comparison, multiple-testing correction, threshold-sensitivity reporting). Step 5: stromal extraction on Sjögren's, plus the ground-truth comparison against the GSE272409 paper's reported fibroblast/pericyte findings and Source Data (there is no reprocessable spatial dataset on the Sjögren's side — see question 6's correction). Tests for the AUCell wrapper, thresholding stats, and the subtraction/regression logic against synthetic planted-signal fixtures. | ~30–38 | ~5–6 hrs |
 | 5 | Sep 23 – Sep 29 | Step 6: DGIdb/ChEMBL pharmacogenomic mapping, with client tests against recorded API-response fixtures (no live network calls in CI), proper dedup/ranking with full provenance. Step 7: validation against positive controls (BAFF, CXCL13, plus the spatial cross-checks from weeks 3–4), full findings write-up, README finalized, full test suite pass. | ~22–31 | ~3.5–5 hrs |
