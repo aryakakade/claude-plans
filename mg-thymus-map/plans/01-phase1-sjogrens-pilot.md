@@ -225,6 +225,16 @@ coincidence.
 This changed tonsil's underlying data (different donors, more total cells), which cascades through
 QC and doublet detection — both had to be re-run.
 
+**Honest caveat on the sex-balance fix, checked at the cell level not just the donor level:**
+donor-level representation is perfectly balanced (2 male, 2 female), but *cell-level* representation
+still skews male, because the two male donors individually contribute more cells than the two
+female donors: on the final post-QC/doublet-removed data, **22,818 male cells (59.9%) vs. 15,254
+female cells (40.1%)**. A real, substantial improvement over the original bug (100% male / 0%
+female), but not a perfect 50/50 by cell count — worth stating plainly in the Limitations section
+rather than letting "2/2 donors" imply a cleaner balance than what's actually there. Not pursued
+further (e.g. subsampling cells per donor to force exact cell-level parity) given the improvement is
+already substantial and the fair deadline.
+
 **Consolidated final numbers, all three fixes applied together:**
 
 | Dataset | Mito threshold | Cells after QC | Doublet threshold | Doublets flagged | Final cells |
@@ -522,8 +532,13 @@ in CI); a test that the ranking/dedup logic behaves correctly on synthetic overl
   only `filtered_feature_bc_matrix`, no `raw_feature_bc_matrix` sibling) — so this can't be corrected
   to match without sourcing different files, and wasn't pursued given the likely-modest practical
   impact (strongly-expressed marker genes sit well above the ambient noise floor) against the fair
-  deadline. Judges at a fair (per question 4's resolution) reward intellectual honesty about a
-  project's boundaries — this section is a rigor signal, not a hedge to bury.
+  deadline; **the tonsil control's sex balance is donor-level only, not cell-level** — 2 male/2 female
+  donors were selected after fixing a real all-male selection bug, but the two male donors
+  individually contribute more cells, so the final data is 59.9% male / 40.1% female by cell count,
+  not 50/50 — a real, substantial improvement over the original bug, but not perfect parity, worth
+  stating plainly rather than letting "2/2 donors" imply otherwise. Judges at a fair (per question 4's
+  resolution) reward intellectual honesty about a project's boundaries — this section is a rigor
+  signal, not a hedge to bury.
 
 ## 5. Deliverables checklist
 
