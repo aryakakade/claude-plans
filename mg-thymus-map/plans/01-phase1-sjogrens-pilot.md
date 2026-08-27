@@ -57,7 +57,7 @@ risky. Sjögren's is a reasonable first target to pair with MG because:
       target/drug list with provenance (which database, which gene, which compound). **Not
       started.**
 - [~] Every stage above has unit tests (synthetic fixtures) and the full pipeline has one integration
-      test (tiny fixture data) — all passing via `make test`. **Steps 1–2 fully covered (51 tests,
+      test (tiny fixture data) — all passing via `make test`. **Steps 1–2 fully covered (53 tests,
       100% coverage on all Step 1–2 modules, `make test` green); Steps 3–7 not yet built.**
 - [x] `README.md` documents how to set up the environment and run the Phase 1 pipeline
       end-to-end via `make phase1` (or equivalent). **Done in Phase 0**; will need a further update
@@ -135,7 +135,7 @@ runs `load_sjogrens` against it end-to-end. No `DATASETS.md` manifest file was c
 
 **Doublet detection — added 2026-08-27, closing the gap flagged earlier the same day.** Built
 `src/mg_thymus_map/qc/doublets.py` (`detect_doublets`/`filter_doublets`), wrapping scanpy's
-Scrublet integration with `batch_key='sample_id'` so doublet simulation respects per-sample
+Scrublet integration with `batch_key='sample_id'` so doublet *simulation* respects per-sample
 boundaries rather than pooling across samples. Motivation beyond generic hygiene: Step 3's planned
 cell–cell-communication analysis could misread a doublet's trivial co-expression of two cell types'
 genes as evidence of a real biological interaction — doublet contamination is a plausible source of
@@ -143,14 +143,40 @@ a false positive for exactly the kind of finding this project is trying to make.
 while wiring this up:** running Scrublet on completely unfiltered data crashes — its internal
 per-batch processing silently drops near-zero-count cells (the same root cause as the earlier NaN
 mito bug), then fails writing results back for cells it dropped. Fixed by running doublet detection
-*after* `filter_cells`/`filter_genes`, not before. **Results on real data:** low flag rates across
-all three datasets — MG 23/45,686 (0.05%), Sjögren's 151/66,484 (0.23%), tonsil 11/26,972
-(0.04%) — noted honestly as an open observation (lower than the ~5% often quoted for droplet-based
-scRNA-seq; a plausible explanation is CellBender's own cell-calling already screening toward
-higher-confidence droplets, but this isn't asserted as proven). Combined dataset went from 139,142
-to 138,957 cells (185 removed, 0.13%) — small enough that re-running annotation + Harmony
-integration afterward produced essentially the same picture as before (same dominant cell types,
-same mixing pattern), which is itself a useful consistency check.
+*after* `filter_cells`/`filter_genes`, not before.
+
+**First-pass results were misleadingly low, and the cause was found and fixed the same day.**
+Initial run gave suspiciously low flag rates (MG 0.05%, Sjögren's 0.23%, tonsil 0.04% — vs. the
+~5% often quoted for droplet-based scRNA-seq). Investigated rather than accepted at face value:
+checked the actual per-sample *threshold* Scrublet's automatic detection computed for each of MG's
+12 samples, and found it ranging **0.35–0.55** — a huge spread — with **6 of the 12 samples
+getting a threshold above every real cell's score in that sample**, flagging zero doublets not
+because those patients are doublet-free, but because Scrublet's automatic bimodal-threshold fit
+failed on samples too small (2,700–5,800 cells each) to show a clean split. **Fix:** added
+`compute_pooled_doublet_threshold` (`src/mg_thymus_map/qc/doublets.py`) — pools every sample's
+*simulated* doublet scores (tens of thousands of points instead of a few thousand per sample) and
+finds the real valley between the two modes via kernel density estimation, same logic Scrublet uses
+per-sample, just with far more statistical power. Applies one threshold per dataset uniformly,
+instead of Scrublet's fragile per-sample ones. (Also fixed a real bug found while building this:
+naive valley-finding can mistake a tiny KDE numerical ripple in a sparse tail for a genuine second
+peak — confirmed on synthetic unimodal test data, an artifact peak >400x smaller in density than
+the real one. Fixed with a minimum relative-prominence check.)
+
+**Corrected results, re-run after the fix:**
+
+| Dataset | Pooled threshold | Doublets flagged (before fix → after) |
+|---|---|---|
+| MG | 0.2990 | 23/45,686 (0.05%) → **299/45,686 (0.65%)** |
+| Sjögren's | 0.2769 | 151/66,484 (0.23%) → **546/66,484 (0.82%)** |
+| Tonsil | 0.3005 | 11/26,972 (0.04%) → **235/26,972 (0.87%)** |
+
+Now consistent across all three datasets (0.65–0.87%) rather than wildly different, and no longer
+suspiciously low — still below the ~5% ballpark sometimes quoted, but that figure is itself a rough
+field-wide average, not a target to hit. Combined dataset: 139,142 → **138,062** cells (1,080
+removed, 0.78%, vs. the earlier incorrect 185/0.13%). Annotation + Harmony integration re-run
+again on the corrected data; same overall picture as before (same dominant cell types, same mixing
+pattern) — the correction changed *how many* doublets were caught, not the broader biological
+conclusions.
 
 **Goal:** each dataset becomes a clean, annotated `AnnData` on a shared cell-type vocabulary.
 
@@ -438,16 +464,17 @@ in CI); a test that the ranking/dedup logic behaves correctly on synthetic overl
 - [ ] `src/mg_thymus_map/stromal/` — subtraction / stromal extraction. **Not started (Step 5).**
 - [ ] `src/mg_thymus_map/pharma/` — DGIdb/ChEMBL clients + ranking. **Not started (Step 6).**
 - [x] `tests/unit/`, `tests/integration/`, `tests/fixtures/` covering all of the above. **Done for
-      Steps 1–2** (51 tests, 100% coverage on those modules); Steps 3–7 have none yet.
+      Steps 1–2** (53 tests, 100% coverage on those modules); Steps 3–7 have none yet.
 - [x] `README.md` — updated with Phase 1 setup/run instructions. **Done in Phase 0**; needs a
       revisit once `pipeline.py` actually orchestrates Step 3+ (currently config-loading only).
 - [x] `Makefile` — `make setup`, `make test`, `make phase1`. **Done in Phase 0.**
 - [ ] A short Phase 1 findings write-up, including the spatial/ground-truth cross-check (Steps 3, 5, 7 —
       reprocessed Visium data for MG's thymoma/hyperplasia paper; reported-findings comparison
-      only for Sjögren's GSE272409, since it has no reprocessable spatial deposit) and a required
-      Limitations section (Step 7). **Not started** — depends on Steps 3–7. Should mention the
-      unusually low doublet rate found (0.04–0.23% across the three datasets, vs. ~5% typically
-      expected) as an open observation.
+      only for Sjögren's GSE272409, since it has no reprocessable spatial deposit), the ambient-RNA
+      correction inconsistency (see Step 7's Limitations note), and a required Limitations section
+      (Step 7). **Not started** — depends on Steps 3–7. The doublet-rate figures are settled (0.65–
+      0.87% across all three datasets, after fixing the per-sample-threshold bug — see Step 2), not
+      an open observation anymore.
 
 ## 6. Risks & mitigations
 
