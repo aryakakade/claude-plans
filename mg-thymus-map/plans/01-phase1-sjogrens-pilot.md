@@ -412,9 +412,17 @@ in CI); a test that the ranking/dedup logic behaves correctly on synthetic overl
   show — e.g. GSE233180's CD45+ sorting means the MG signature is immune-cell-only; a single
   disease pairing (n=1) can't yet claim the "shared architecture" generalizes to RA/SLE/Graves';
   sample sizes are modest; the literature-seeded signature (question 3) means part of the
-  "shared architecture" finding is anchored to prior publications, not purely novel. Judges at a
-  fair (per question 4's resolution) reward intellectual honesty about a project's boundaries — this
-  section is a rigor signal, not a hedge to bury.
+  "shared architecture" finding is anchored to prior publications, not purely novel; **ambient-RNA
+  correction is inconsistent across datasets** — MG's `.h5` files were already processed with
+  CellBender (ambient-RNA-corrected) by the original authors before upload, but Sjögren's
+  (GSE272409) and the tonsil atlas (Zenodo 10373041) only provide already-filtered matrices, not
+  the raw/unfiltered droplets CellBender needs as input (confirmed 2026-08-27: Sjögren's
+  per-sample cell counts are filtered-matrix scale, 3,000–8,600; tonsil's per-donor folders contain
+  only `filtered_feature_bc_matrix`, no `raw_feature_bc_matrix` sibling) — so this can't be corrected
+  to match without sourcing different files, and wasn't pursued given the likely-modest practical
+  impact (strongly-expressed marker genes sit well above the ambient noise floor) against the fair
+  deadline. Judges at a fair (per question 4's resolution) reward intellectual honesty about a
+  project's boundaries — this section is a rigor signal, not a hedge to bury.
 
 ## 5. Deliverables checklist
 
