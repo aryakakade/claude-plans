@@ -587,6 +587,15 @@ published mechanistic driver of thymic MG autoimmunity.
     state above.
   Same logic as the BAFF/CXCL13 positive control in Step 7: check whether our own
   independently-derived stromal marker list recovers these genes (or close pathway relatives).
+  **Cross-disease corroboration worth remembering here (found 2026-08-28, during Step 3's
+  literature research, easy to lose track of since it wasn't found while working on Step 5
+  itself):** VCAM1 shows up independently in *two* separate papers, not just this one — Sengupta et
+  al. 2018 (*PLoS One* 13(10):e0205464, see `signature/seed.py`'s docstring) found VCAM1
+  differentially expressed in real **MG thymus** GC-rich vs. GC-poor tissue, the same gene Nayar et
+  al. list above for **Sjögren's** salivary gland. Same gene, independently flagged in both halves of
+  this project's actual disease pairing, not two unrelated cancer papers — worth prioritizing VCAM1
+  specifically when this step's marker list is built, rather than treating it as just one entry among
+  many in the Nayar list above.
 
 **Tests to add later:** unit test of the subtraction/regression function against synthetic data
 where the "shared" and "unique" signals are known/planted, confirming the function recovers the
