@@ -448,8 +448,9 @@ that combines the seed list + cell-state calls + communication evidence into the
 provenance-tagged output artifact — that, plus the spatial validation sub-step below, are what's
 left to close out Step 3.
 
-- **Seed with the established 12-chemokine TLS signature** (per question 3's resolution), then
-  refine using the MG data rather than deriving fully de novo.
+- **Seed with the established 12-chemokine TLS signature plus TNFSF13B/BAFF** (13 genes; per
+  question 3's resolution and its 2026-08-28 follow-up below), then refine using the MG data rather
+  than deriving fully de novo.
 - Identify the cell populations and interactions specifically associated with TLS formation in the
   MG thymus data: germinal-center-like B cells, T follicular helper cells, follicular dendritic
   cells, high endothelial venules, relevant chemokine expression (e.g. CXCL13, CCL21).
@@ -707,6 +708,44 @@ in CI); a test that the ranking/dedup logic behaves correctly on synthetic overl
    prior vs. which were added/reweighted from the MG-specific refinement — so the eventual
    "shared architecture" finding can be read honestly as partly literature-anchored, not purely
    novel, and the refinement step's contribution is auditable on its own.
+
+   **Follow-up, 2026-08-28: the literature prior itself was under-sourced, and has been fixed.**
+   The initial implementation grounded the 12-chemokine core in one paper (Messina et al. 2012) and
+   "verified" it only by finding other papers that *cited/reused* that same list — not independent
+   confirmation, since a single group's original panel can miss genes other researchers separately
+   found relevant. Flagged directly by the user: "please use much more research rather than just
+   one paper to confirm this literature prior... one research alone may not have all the previously
+   discovered genes." Did a real multi-paper search rather than relying on recalled knowledge; full
+   trail and per-gene support level now lives in `signature/seed.py`'s module docstring. Findings:
+   - **Uneven support within the original 12**, made explicit rather than smoothed over: CXCL13,
+     CCL19, CCL21, CXCL9, CXCL10, CXCL11 recur across genuinely independent work (Hou et al. 2023's
+     independent statistical re-derivation from three separately-published gene sets, and — more
+     relevantly — real Sjögren's-syndrome single-cell/spatial data, see below). CCL2, CCL3, CCL4,
+     CCL5, CCL8, CCL18 did not independently turn up elsewhere in this search; they stay in the seed
+     list because the 12-chemokine panel remains the field's most widely *reused* TLS score, but
+     that's reuse of one panel, not independent re-discovery — reported honestly rather than papered
+     over.
+   - **Added TNFSF13B (BAFF)** to the seed signature. Not part of the original 12-chemokine panel,
+     but independently and repeatedly implicated in *autoimmune* (not cancer) ectopic lymphoid
+     structure formation specifically — exactly this project's context — by Bombardieri et al. 2017
+     and a dedicated Nature Reviews Rheumatology piece on BAFF's role in tertiary lymphoid
+     neogenesis in Sjögren's syndrome and rheumatoid arthritis. Confirmed present in MG's real gene
+     panel (25,150 genes) before adding.
+   - **Found a major asset for later steps**: Nayar et al. 2025 ("Molecular and spatial analysis of
+     tertiary lymphoid structures in Sjogren's syndrome", *Nature Communications*,
+     doi:10.1038/s41467-024-54686-0) is real single-cell/spatial ground truth for TLS in the actual
+     comparison disease — not another cancer analogy. It independently corroborates CD40 as
+     TLS-relevant (elevated in Sjögren's TLS-GC vs. tonsil-GC), consistent with this project's own
+     liana-py finding of CD40LG-CD40 as a top hit in real MG data (see Step 3 below) — a genuine
+     literature/data cross-check, found after the fact rather than fit to it. It also reports a
+     TLS-associated fibroblast signature (CD34, CCL19, TNFSF13B, ICAM1, VCAM1, CD82, CXCL9) and an
+     inflammatory-state signature (ICOS, IFNG, TNF, CASP8) distinguishing Sjögren's TLS from tonsil
+     GC — these describe a stromal cell type and an activation state respectively, not additional
+     TLS *identity* chemokines, so they were **not** folded into the seed signature. Recorded here
+     as the primary reference to build from when Step 5 (Sjögren's-side stromal extraction) needs
+     its own dedicated marker panel, with its own review — not bolted on hastily now.
+   - `tests/unit/test_signature_seed.py` updated (13 genes now, was 12); full suite still green
+     (76 tests).
 
 4. **Annotation rigor & biological review** — Status: **Resolved**
    Automated reference-based cell-type annotation (fast, consistent, but sometimes miscalls rare
