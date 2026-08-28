@@ -718,19 +718,38 @@ in CI); a test that the ranking/dedup logic behaves correctly on synthetic overl
    discovered genes." Did a real multi-paper search rather than relying on recalled knowledge; full
    trail and per-gene support level now lives in `signature/seed.py`'s module docstring. Findings:
    - **Uneven support within the original 12**, made explicit per-gene rather than smoothed over —
-     and corrected once already: an earlier pass of this write-up lumped CCL21 in with genes
-     independently re-derived by Hou et al. 2023, which was wrong (checked directly: CCL21 is not
-     in Hou's re-derived panel). Actual per-gene picture: **CXCL13** has three independent sources
-     (Hou et al. 2023's statistical re-derivation from three pooled published gene sets; Nayar et
-     al. 2025's Sjögren's data; and Yoshimitsu et al. 2025, *Cancer Science* 116(8):2075–2085, which
-     experimentally co-administered CXCL13+CCL21 in mice and showed it induces TLS formation and
-     improves anti-PD-L1 efficacy — functional evidence, not just correlation). **CCL19, CXCL9,
-     CXCL10** each have two independent sources (Hou + Nayar). **CXCL11** has one (Hou only).
-     **CCL21** has one, but a different one than the other five — Yoshimitsu et al.'s functional
-     experiment, not Hou's panel. **CCL2, CCL3, CCL4, CCL5, CCL8, CCL18** have zero independent
-     sources found in this search; they stay in the seed list only because the 12-chemokine panel
-     remains the field's most widely *reused* TLS score — that's reuse of one panel, not independent
-     re-discovery, reported honestly rather than papered over.
+     and corrected twice already (see below), which is itself worth being upfront about rather than
+     presenting the current state as if it were right the first time. Actual per-gene picture as of
+     2026-08-28's second research pass (prompted by the user asking to search again in case anything
+     was missed):
+     - **CXCL13**: three independent sources — Hou et al. 2023's statistical re-derivation (pooled
+       three published gene sets, Cox regression on TCGA); Nayar et al. 2025's Sjögren's data; and
+       Yoshimitsu et al. 2025 (*Cancer Science* 116(8):2075–2085), which experimentally
+       co-administered CXCL13+CCL21 in mice and showed it induces TLS formation and improves
+       anti-PD-L1 efficacy — functional evidence, not just correlation.
+     - **CCL19, CXCL9, CXCL10**: two independent sources each (Hou + Nayar).
+     - **CXCL11**: one independent source (Hou only).
+     - **CCL21**: two independent sources, corrected once already — an earlier pass wrongly lumped
+       it in with Hou et al.'s re-derived panel, which it isn't part of (checked directly). Its real
+       sources: Yoshimitsu et al.'s functional experiment (above), and — the strongest evidence
+       found in this whole search — Sengupta et al. 2018 (*PLoS One* 13(10):e0205464), which found
+       CCL21 differentially expressed between GC-rich and GC-poor **MG thymus tissue itself**, not
+       a borrowed disease. The same paper independently found RGS13 and FDCSP differentially
+       expressed too — both already in this project's marker panels (`GC_B_CELL_MARKERS`,
+       `FDC_MARKERS`), now with an added citation there.
+     - **CCL5**: two sources of different confidence — Nakamura et al. 2022 (*Front Oncol*
+       12:811586, Merkel cell carcinoma, full text verified: CCL5 significantly elevated in
+       TLS-positive samples, screened across 27 chemokine/receptor genes) and Xu et al. 2022
+       (*Cancer Immunol Immunother*, ccRCC) reportedly finding CCL4/CCL5/CCL8/CCL19/CXCL13
+       prognostically significant — this second source could only be confirmed via search-engine
+       summaries (paywalled, full text never accessed), so it's flagged as a lead, not verified on
+       the same footing as the other citations here.
+     - **CCL4, CCL8**: one source each, the same paywalled Xu et al. lead above — same caveat.
+     - **CCL2, CCL3, CCL18**: zero independent sources found across the full search (Hou,
+       Dieu-Nosjean 2014, Nayar, Yoshimitsu, Sengupta, Nakamura, Xu). They stay in the seed list
+       only because the 12-chemokine panel as a whole remains the field's most widely *reused* TLS
+       score — that's reuse of one panel, not independent re-discovery. This "zero found" is bounded
+       by the searches actually run, not a claim that no such evidence exists anywhere.
    - **Added TNFSF13B (BAFF)** to the seed signature. Not part of the original 12-chemokine panel,
      but independently and repeatedly implicated in *autoimmune* (not cancer) ectopic lymphoid
      structure formation specifically — exactly this project's context — by Bombardieri et al. 2017
@@ -752,6 +771,19 @@ in CI); a test that the ranking/dedup logic behaves correctly on synthetic overl
      its own dedicated marker panel, with its own review — not bolted on hastily now.
    - `tests/unit/test_signature_seed.py` updated (13 genes now, was 12); full suite still green
      (76 tests).
+   - **Papers found but deliberately not used, for the record:** Cabrita et al. 2020 (*Nature*,
+     melanoma TLS) — searched repeatedly but never got past a paywall/cookie-wall to its actual gene
+     list; genuinely unresolved, not ruled out. Dieu-Nosjean et al. 2014 (*Trends in Immunology*) —
+     the gene list attributed to it in search results was identical to Messina/Coppola's, so
+     independence vs. reuse couldn't be established. Lin et al. 2020 — never looked at directly (one
+     of the three papers Hou et al. pooled). Vanhersecke et al. 2021 (*Nature Cancer*, mature-TLS/
+     DC-LAMP) — no new gene-level detail found beyond what Hou's panel already covers. **Helmink et
+     al. 2020** (*Nature*, melanoma) — a real independent finding (a TLS-B-cell gene set: CD19, CR2,
+     CD79A, MS4A1, CD40, CD22, CD23, CD27, CD72) that was set aside without being formally recorded
+     until now, because these are general B-cell/BCR-activation genes rather than GC-specific ones
+     and didn't cleanly fit `GC_B_CELL_MARKERS` without blurring that panel's specificity — CD40 and
+     CD22 are worth another look given they also independently surfaced in Nayar et al.'s Sjögren's
+     data, but that's a deliberate future re-check, not done here.
 
 4. **Annotation rigor & biological review** — Status: **Resolved**
    Automated reference-based cell-type annotation (fast, consistent, but sometimes miscalls rare
