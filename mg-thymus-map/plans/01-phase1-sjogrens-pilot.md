@@ -717,14 +717,20 @@ in CI); a test that the ranking/dedup logic behaves correctly on synthetic overl
    one paper to confirm this literature prior... one research alone may not have all the previously
    discovered genes." Did a real multi-paper search rather than relying on recalled knowledge; full
    trail and per-gene support level now lives in `signature/seed.py`'s module docstring. Findings:
-   - **Uneven support within the original 12**, made explicit rather than smoothed over: CXCL13,
-     CCL19, CCL21, CXCL9, CXCL10, CXCL11 recur across genuinely independent work (Hou et al. 2023's
-     independent statistical re-derivation from three separately-published gene sets, and — more
-     relevantly — real Sjögren's-syndrome single-cell/spatial data, see below). CCL2, CCL3, CCL4,
-     CCL5, CCL8, CCL18 did not independently turn up elsewhere in this search; they stay in the seed
-     list because the 12-chemokine panel remains the field's most widely *reused* TLS score, but
-     that's reuse of one panel, not independent re-discovery — reported honestly rather than papered
-     over.
+   - **Uneven support within the original 12**, made explicit per-gene rather than smoothed over —
+     and corrected once already: an earlier pass of this write-up lumped CCL21 in with genes
+     independently re-derived by Hou et al. 2023, which was wrong (checked directly: CCL21 is not
+     in Hou's re-derived panel). Actual per-gene picture: **CXCL13** has three independent sources
+     (Hou et al. 2023's statistical re-derivation from three pooled published gene sets; Nayar et
+     al. 2025's Sjögren's data; and Yoshimitsu et al. 2025, *Cancer Science* 116(8):2075–2085, which
+     experimentally co-administered CXCL13+CCL21 in mice and showed it induces TLS formation and
+     improves anti-PD-L1 efficacy — functional evidence, not just correlation). **CCL19, CXCL9,
+     CXCL10** each have two independent sources (Hou + Nayar). **CXCL11** has one (Hou only).
+     **CCL21** has one, but a different one than the other five — Yoshimitsu et al.'s functional
+     experiment, not Hou's panel. **CCL2, CCL3, CCL4, CCL5, CCL8, CCL18** have zero independent
+     sources found in this search; they stay in the seed list only because the 12-chemokine panel
+     remains the field's most widely *reused* TLS score — that's reuse of one panel, not independent
+     re-discovery, reported honestly rather than papered over.
    - **Added TNFSF13B (BAFF)** to the seed signature. Not part of the original 12-chemokine panel,
      but independently and repeatedly implicated in *autoimmune* (not cancer) ectopic lymphoid
      structure formation specifically — exactly this project's context — by Bombardieri et al. 2017
