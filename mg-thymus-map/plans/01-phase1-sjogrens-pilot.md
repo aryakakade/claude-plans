@@ -68,6 +68,47 @@ risky. Sjögren's is a reasonable first target to pair with MG because:
       pipeline that runs but finds no shared signal is still a valid, useful Phase 1 result. **Not
       started** — depends on Steps 3–7.
 
+## 3a. Data-source compliance (ISEF Human Participants / Tissue rules) — checked 2026-08-31
+
+Checked directly against Society for Science's published ISEF International Rules (not assumed) whether
+any of this project's four datasets require IRB approval or human-participants paperwork. All four are
+secondary analysis of already-published, already-public data — no participant interaction, no physical
+tissue in hand, no new data collection — which two separate documented exemptions cover:
+
+- **Human Participants rules** ([societyforscience.org/isef/international-rules/human-participants](https://www.societyforscience.org/isef/international-rules/human-participants/)),
+  "Exempt Studies (Do Not Require IRB Preapproval or Human Participants Paperwork)": *"Data/record
+  review studies... in which the data are taken from preexisting data sets that are publicly available
+  and/or published and do not involve any interaction with humans or the collection of any data from a
+  human participant for the purpose of the student's research project."*
+- **Tissue & Body Fluid rules** ([societyforscience.org/isef/international-rules/tissue-and-body-fluid](https://www.societyforscience.org/isef/international-rules/tissue-and-body-fluid/)),
+  "Exempt Studies (No SRC Pre-Approval Required)": *"Projects utilizing only data or images are exempt
+  from IACUC pre-approval ONLY if the originating study is published in a peer-reviewed journal or the
+  data is available in a publicly available database. In this case, the student must provide a
+  reference to the original study OR link to the database."*
+
+| Dataset | What's actually used | Public/published basis |
+|---|---|---|
+| MG thymus | GEO `GSE233180` | Public GEO accession, published paper |
+| Sjögren's | GEO `GSE272409` | Public GEO accession, published paper |
+| Healthy tonsil | Zenodo record for `E-MTAB-13687` | Public Zenodo record, Massoni-Badosa et al., *Immunity* 2024 |
+| MG spatial (Visium) | **figshare `10.6084/m9.figshare.25052546`** | Public figshare deposit (CC BY 4.0, no access request), Yasumizu et al., *Cell Reports* 43(9):114677, 2024; original sample collection reviewed/approved by Osaka University's Research Ethics Committee, protocol ID 10038-13 |
+
+**Important distinction to keep straight, checked explicitly because it's easy to conflate:** the
+Yasumizu et al. paper's *raw* sequence data is deposited separately at Japan's JGA (Japanese
+Genotype-phenotype Archive) under accession `JGAS000672` — that one is **controlled-access**, requiring
+a formal Data Access Committee application, and is **not** what this project uses or should cite. What
+this project uses is the same paper's *separate*, fully public **figshare** deposit of the processed
+Visium output (`res.cxg.h5ad`). Any compliance paperwork or citation for the spatial dataset should
+reference the figshare DOI, not `JGAS000672` — citing the JGA accession would incorrectly imply access
+to the controlled-access raw data.
+
+**Caveat, stated plainly rather than overclaimed:** this is Society for Science's published rule text,
+checked directly against the primary source rather than assumed — not an official ISEF/SRC approval.
+The actual compliance determination for this project is made by its affiliated fair's Scientific Review
+Committee (SRC), not by this document. Worth a direct confirmation from a mentor/SRC before treating
+this as final, even though the rule text maps onto this project's situation cleanly on every point
+checked.
+
 ## 4. Step-by-step plan
 
 ### Step 1 — Data assembly — Status: ✅ Complete (2026-08-26/27)
