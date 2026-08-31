@@ -487,6 +487,165 @@ CLEC2D, ADAM28, ITGA4, LAMP1) are included under the same mechanical rule withou
 mechanistic review — a caveat worth remembering if this signature's `mg_derived` half is scrutinized
 later, e.g. during Step 7's validation.
 
+**Literature check on all 7 mg_derived pairs — done 2026-08-31.** The above paragraph flagged that
+most of the 12 `mg_derived` genes hadn't had individual mechanistic review. Closed that gap with a
+dedicated literature search per pair, run precisely because the `mg_derived` tag only certifies
+"found in this project's own MG communication evidence," not "novel to science" — a distinction easy
+to blur if left unchecked. Findings:
+
+| Pair | Status | Evidence |
+|---|---|---|
+| CD40LG→CD40 | **Well established** | Textbook Tfh–B cell help signaling, decades of literature |
+| CD28→CD86 | **Well established** | Direct receptor-ligand binding, documented specifically in T–B interactions ([Int Immunol 9(5):637, 1997](https://academic.oup.com/intimm/article-pdf/9/5/637/18324139/090637.pdf)) |
+| CD22→PTPRC (CD45) | **Well established** | CD22 recognizes α2,6-sialylated glycans on CD45 as a direct cis-ligand, documented since the 1990s ([Doody et al. 1995, PMID 7537381](https://pubmed.ncbi.nlm.nih.gov/7537381/); [PMC11407986](https://pmc.ncbi.nlm.nih.gov/articles/PMC11407986/)) |
+| ADAM28→ITGA4 | **Well established** | ADAM28's disintegrin domain is an activation-dependent ligand for α4β1 integrin on lymphocytes, shown experimentally in multiple dedicated papers ([Bridges 2002, PMID 11724793](https://pubmed.ncbi.nlm.nih.gov/11724793/); [Bridges 2003, PMID 12667064](https://pubmed.ncbi.nlm.nih.gov/12667064/?dopt=Abstract); [McGinn 2011, doi:10.1042/CBI20100885](https://onlinelibrary.wiley.com/doi/10.1042/CBI20100885)) |
+| LTB→CD40 | **Not supported** | No literature found showing LTB binds CD40 directly — LTB's actual receptor is LTβR, structurally and functionally distinct ([PMID 14517219](https://pubmed.ncbi.nlm.nih.gov/14517219/)). Confirms the artifact suspicion above. |
+| FAM3C→LAMP1 | **Weak** | Only evidence is one entry in a generic high-throughput affinity-capture-MS interactome screen ([BioPlex, Huttlin et al. 2017, *Nature*, PMID 28514442](https://thebiogrid.org/interaction/2267326/lamp1-fam3c.html)), run in HEK293T cells (not immune cells), never characterized as a functional signaling pair |
+| FAM3C→CLEC2D | **No evidence found** | No dedicated study or database record of this specific pairing. FAM3C's known receptors are FGFRs (established for its paralog FAM3B/PANDER); CLEC2D's established ligand is KLRB1 (CD161). Looks like a computational/predicted database entry rather than a shown interaction. |
+
+**Net result:** 9 of the 12 `mg_derived` genes (CD40LG, CD40, CD28, CD86, CD22, PTPRC, ADAM28, ITGA4)
+sit on interactions with real, independent literature support predating this project — they weren't
+in the TLS-specific seed list, but they are not new to science. Only LTB (via LTB-CD40) and FAM3C
+(via both its pairs) lack solid independent support. **No schema change made**: the `mg_derived`
+provenance tag is left as-is (it correctly means "corroborated by this project's own MG communication
+evidence," a distinct and still-useful claim from `literature_prior`'s "came from the TLS-specific
+literature search"). Whether to split `mg_derived` into literature-confirmed vs. -unconfirmed
+sub-tags is a deliberate future decision — it would touch `add_communication_evidence`'s output
+schema, its tests, and Step 4's consumption of the signature — not something to fold in silently
+alongside a literature audit.
+
+**Threshold honesty note, same date — are the specificity_rank ≤ 0.05 / magnitude_rank ≤ 0.6 cutoffs
+"ideal"? No, and that shouldn't be implied.** The two-statistic rule fixes one specific, concretely
+observed failure (specificity_rank's tie floor excluding CD40LG-CD40 at liana's own stricter tutorial
+cutoff of 0.01) — it is not validated as a generally correct or optimal rule:
+
+1. `magnitude_threshold=0.6` was picked by eyeballing the single largest gap in a sorted list of only
+   15 values (the rows that already passed `specificity_threshold=0.05`) — a "natural breaks"
+   heuristic, not a statistically principled cut. No permutation test or bootstrap stability check
+   (resampling cells and re-running `liana` to see if the same gap reappears) was done.
+2. `specificity_threshold=0.05` was itself picked to sit just above the 0.045454 tie floor — i.e., to
+   admit that whole tied block — rather than derived independently the way magnitude's gap was.
+3. The combination was judged "successful" mainly because it kept the one pair (CD40LG-CD40) already
+   known to be real from independent textbook biology. That is tuning against a single labeled
+   positive, not validation against an independent holdout set. Of the four textbook pairs checked
+   going in, three (CXCL13-CXCR5, ICOS-ICOSLG, IL21-IL21R) were absent from liana's output entirely
+   due to scRNA-seq dropout and never actually entered the threshold decision.
+4. No sensitivity sweep was run (e.g. `magnitude_threshold` ∈ {0.5, 0.6, 0.7} or
+   `specificity_threshold` ∈ {0.03, 0.05, 0.1}) to check whether the resulting 7-pair/12-gene list is
+   robust to nearby threshold choices, and no cross-method check (e.g. rerunning with `squidpy` or
+   `CellPhoneDB` alone on the same cells) was done.
+
+Bottom line: this is a defensible, documented fix for one real problem found in this project's own
+data, not a statistically certified or field-validated cutoff. The literature check above (mostly
+independently corroborating the resulting gene list) is reassuring, but it corroborates the *output*
+after the fact — it doesn't retroactively make the threshold-selection process itself rigorous.
+
+**Sensitivity sweep — done 2026-08-31, closing item 4 above.** Re-ran the real `liana` analysis
+against `data/interim/mg_with_cell_states.h5ad` (same `n_perms=1000`, `seed=1337` — reproduced the
+documented 6,253 total rows / 94 `GC_B_cell`↔`Tfh` rows exactly, confirming this is the same data and
+method, not a re-derivation) and swept `specificity_threshold` × `magnitude_threshold` over a grid.
+This revises the assessment above in **both** directions, not just confirming it was bad:
+
+| | Verdict before the sweep | Verdict after running it |
+|---|---|---|
+| `magnitude_threshold=0.6` | "eyeballed a gap" — implied weak | **More defensible than implied.** At `specificity_threshold=0.05`, the gene set is *identical* (12 genes) for every `magnitude_threshold` from 0.55 to 0.75 — a real, verified stability plateau, not just a visually large gap in 15 numbers. Below 0.55 the set shrinks (loses CD28, CD86, LAMP1 at 0.50); above 0.75 it grows (gains CD53, CD80 at 0.80). |
+| `specificity_threshold=0.05` | "sits just above the tie floor" — implied arbitrary but stable | **Less defensible than implied.** The result doesn't just lose CD40LG-CD40 below 0.05 — it collapses to 0 genes entirely at 0.01, 0.02, and 0.03, then jumps straight to 12 genes at 0.05, 15 at 0.07, 21 at 0.10. This is a cliff at the 0.045454 tie floor, not a gradient. `0.05` is the smallest round number that clears the tied block of 13 rows — not validated as "correct" in any stronger sense. An equally defensible round number like `0.07` would have added CD5, CD72, and ST6GAL1 to the signature instead. |
+
+**Net conclusion:** the 12-gene result is robust to `magnitude_threshold` choice within a genuine
+~0.2-wide band, but fragile to `specificity_threshold` choice in a way that isn't fixable by simply
+picking a "better" constant — the tie floor itself is the problem. The more durable fix is likely
+either (a) dropping `specificity_rank` as a hard cutoff and relying on `magnitude_rank`'s validated
+plateau alone, or (b) checking whether `liana`'s underlying `cellphone_pvals` column (present in the
+same output, not rank-transformed, so it shouldn't share the tie-floor artifact) gives a usable
+alternative. Neither has been implemented — see the validation backlog immediately below.
+
+## 4b. Validation backlog — cutoffs needing further work (added 2026-08-31)
+
+Prioritized, concrete next steps for the ad hoc/adaptive cutoffs flagged as not-yet-validated above.
+Added because flagging fragility without a plan to close it isn't sufficient — Step 4 will build a
+headline cross-disease finding on top of this signature, so an unresolved threshold problem here
+propagates forward if left alone.
+
+- [x] **Fix or replace `specificity_rank` as a hard cutoff — checked 2026-08-31, negative result.**
+      Checked whether `liana`'s raw `cellphone_pvals` column avoids `specificity_rank`'s tie-floor
+      artifact. It does not — it's dramatically worse: **61 of the 94 rows (65%) are tied at the exact
+      floor value 0.000**, plus 4 more at 1.000 and 3 at 0.005 (only 29 unique values across all 94
+      rows). Root cause: `liana`'s own documented CellPhoneDB p-value formula is
+      `count(permuted ≥ observed) / n_perms`, and with `n_perms=1000` the smallest representable
+      non-zero p-value is 0.001 — any pair no permutation ever matched floors at exactly 0.000. This
+      is a resolution artifact of permutation testing at this depth, not fixable by a different cutoff
+      on the same statistic, so `cellphone_pvals` is ruled out as a replacement. `specificity_rank`
+      (aggregated across all of `liana`'s component methods, not a single permutation p-value) remains
+      the better-behaved option despite its own tie floor. **Remaining options, not yet done:** (a)
+      drop `specificity_rank` as a hard gate and rely on `magnitude_rank`'s validated 0.55–0.75 plateau
+      alone, or (b) stop hunting for a better p-value-like statistic on the same underlying permutation
+      test and add a genuinely orthogonal evidence line instead — which is also what the literature
+      recommends, see below.
+
+      **Permutation-depth check — done 2026-08-31, real but bounded improvement.** [Phipson & Smyth
+      2010](https://www.degruyterbrill.com/document/doi/10.2202/1544-6115.1585/html) ("Permutation
+      P-values Should Never Be Zero") establish that an exact `p=0.000` from a finite permutation test
+      is a known resolution artifact, not evidence the biology is weak — and predicts more permutations
+      should improve resolution. Tested directly: reran the same analysis at `n_perms` = 1,000 →
+      10,000 → 100,000 (same seed, same data). The top `specificity_rank` tie cluster shrank
+      **13 → 9 → 7 pairs** across the three depths (runtime 20s → 77s → 708s) — a real, diminishing-
+      but-genuine improvement, consistent with a true resolution limit rather than a bug. **The final
+      12-gene signature is unaffected at every depth** — recomputing the output at the project's actual
+      thresholds (`specificity_threshold=0.05`, `magnitude_threshold=0.6`) against all three runs gives
+      the identical 12 genes each time, because every pair that ever appears in the reshuffling tie
+      block stays well under 0.05 regardless of resolution. Also reassuring: CD80-CTLA4 and CD86-CTLA4
+      remain tied for "most significant" at every depth but never enter the signature, because they
+      fail `magnitude_rank` (1.000, 0.912 — both over the 0.6 cutoff) — the two-statistic design
+      catches them where `specificity_rank` alone cannot. **Recommendation:** raise `n_perms` (e.g. to
+      10,000) as a general-quality improvement for future signature work, both for resolution and to
+      move away from the uncorrected `b/m` p-value formula — but this is not required to trust the
+      current 12-gene result, which is now empirically shown stable across a 100× range of permutation
+      depth rather than merely assumed to be.
+- [ ] **Cross-method check.** Rerun the same `GC_B_cell`↔`Tfh` comparison through a single
+      non-consensus method (`squidpy`'s ligrec, or one `liana` component method alone, e.g.
+      CellPhoneDB) on the same cells, and check how much the resulting gene set overlaps with the
+      12-gene `rank_aggregate` result. Tests whether the finding is a consensus-method artifact or
+      reproduces under an independent method.
+- [ ] **Expand the validation benchmark past 4 pairs.** The "does this method recover known biology"
+      check so far is only CD40LG-CD40, CXCL13-CXCR5, ICOS-ICOSLG, IL21-IL21R (from `liana`'s own
+      tutorial framing). A larger curated set of known GC/Tfh interactions, pulled from actual
+      immunology literature rather than one tutorial's examples, would make this a real benchmark
+      instead of an anecdote.
+- [ ] **Test `min_genes_per_cell=200`/`min_cells_per_gene=3` the same way the mito-% cutoff was
+      tested.** Row 3 in the cutoffs table (§4a) was checked against real per-cell-type retention and
+      found to fail for generic conventions; rows 1–2 haven't been given that same empirical check on
+      MG/Sjögren's/tonsil data specifically, despite tracing to the same kind of borrowed-tutorial
+      source (§4a's honest caveat on rows 1–2).
+- [ ] **Build the AUCell threshold (Step 4) as adaptive-against-tonsil, not fixed.** Highest-priority
+      item on this list — the plan already states this cutoff "drives the headline result," and it
+      doesn't exist yet. The stated intent (benchmark against the tonsil control's own score
+      distribution) is the right approach in principle; make sure it's actually built that way rather
+      than defaulting to a fixed AUCell score under time pressure.
+
+**What the field recommends before trusting CCC results — researched 2026-08-31, before starting
+spatial validation, to check whether anything cheaper/complementary should happen first.** Both
+`sc-best-practices.org`'s cell–cell-communication chapter and `liana`'s own validation methodology
+(Dimitrov et al. 2022, *Nat Commun*, doi:10.1038/s41467-022-30755-0; Dimitrov et al. 2024's LIANA+,
+*Nat Cell Biol*, doi:10.1038/s41556-024-01469-w) converge on the same answer: CCC inference from
+scRNA-seq alone is a hypothesis-generation step, and predictions should be corroborated against
+**orthogonal modalities** before being trusted — specifically **spatial co-localization**, **protein
+abundance**, or **downstream-signalling activity**. `liana`'s own papers benchmark their predictions
+against exactly these three. This is a genuine external confirmation, not just self-justification,
+that **spatial validation (already planned below) is the field-standard next move, not an
+idiosyncratic choice for this project.**
+
+Of the three, protein abundance isn't available (no CITE-seq/proteomics in this project's data) and
+spatial co-localization is the larger effort already scoped below. The one that's cheap and doable
+*before* that larger lift, using data already in hand: **a downstream-signalling concordance check**
+— e.g. using `liana`'s/`decoupler`'s pathway or TF-target-activity tools to check whether a target
+gene set plausibly downstream of a given receptor (e.g. NF-κB target genes downstream of CD40
+signalling) is actually elevated in the receptor-expressing population (GC_B_cell for CD40). This
+wouldn't replace spatial validation, but would add a second, cheap, already-in-hand line of evidence
+specifically for the pairs currently resting on the least support — LTB-CD40 (flagged non-canonical)
+and the two FAM3C pairs (no independent literature support found). **Not yet implemented** — flagged
+here as a candidate item, not started, pending a decision on whether it's worth the scope before
+moving to spatial validation.
+
 Left to close out Step 3: the spatial validation sub-step below.
 
 - **Seed with the established 12-chemokine TLS signature plus TNFSF13B/BAFF** (13 genes; per
@@ -515,6 +674,12 @@ Left to close out Step 3: the spatial validation sub-step below.
   own AUCell scoring if the data proves easy to obtain and reasonably sized; fall back to comparing
   gene-list overlap with the paper's reported niche markers if not — either way it's a secondary
   check, not a blocking requirement for Step 3's core output.
+
+  **Status check — 2026-08-31: not started, no spatial data downloaded yet.** Confirmed by listing
+  `data/raw/` directly: only the three scRNA-seq datasets (`mg_thymus`, `sjogrens_salivary_gland`,
+  `healthy_tonsil`) exist. No Visium/spatial data has been acquired. Next concrete step: locate the
+  Cell Reports paper's actual data-deposit accession (GEO/Zenodo/other) for its Visium samples before
+  anything can be downloaded or reprocessed.
 
 **Tests to add later:** unit test that signature-derivation is deterministic given fixed input +
 seed; a test that the output signature format matches what Step 4 expects (schema contract); a
@@ -649,6 +814,54 @@ in CI); a test that the ranking/dedup logic behaves correctly on synthetic overl
   stating plainly rather than letting "2/2 donors" imply otherwise. Judges at a fair (per question 4's
   resolution) reward intellectual honesty about a project's boundaries — this section is a rigor
   signal, not a hedge to bury.
+
+## 4a. Cutoffs used across the pipeline — referenced vs. adaptive, and why (added 2026-08-31)
+
+Every numeric cutoff used in Phase 1 so far, in one place, with whether it's a fixed value taken
+from the field ("referenced") or computed from this project's own data ("adaptive"/ad hoc), and why.
+Added after a direct question about whether referenced cutoffs could replace the adaptive ones
+throughout — the answer differs by cutoff, for a structural reason explained below the table.
+
+| # | Cutoff | Value(s) | Referenced or adaptive | Why |
+|---|---|---|---|---|
+| 1 | `min_genes_per_cell` | 200 | **Referenced** | [Seurat PBMC3k Guided Clustering Tutorial](https://satijalab.org/seurat/articles/pbmc3k_tutorial.html): `CreateSeuratObject(min.features = 200)` — confirmed by fetching the page directly |
+| 2 | `min_cells_per_gene` | 3 | **Referenced** | Same tutorial: `CreateSeuratObject(min.cells = 3)` — confirmed |
+| 3 | Mitochondrial-% cutoff | MG 9.5%, Sjögren's 38.1%, tonsil 25.3% (median + 5×MAD, capped at 50%) | **Adaptive** | Generic referenced ranges (5% immune-only, 10–15% Sjögren's, 8–10% tonsil) were tested directly and rejected — a fixed 5% cutoff strips 39% of MG plasma cells and 50% of cycling cells, exactly the populations this project studies (Step 2) |
+| 4 | Doublet-score threshold | MG 0.2990, Sjögren's 0.2769, tonsil 0.3300 (KDE valley on pooled simulated scores) | **Adaptive** | Scrublet's own per-sample auto-threshold — the closest thing to a "reference" — failed outright on 6 of 12 MG samples (threshold fit above every real cell's score); the score scale isn't portable across datasets anyway |
+| 5 | Doublet KDE peak-prominence guard | `min_second_peak_prominence=0.05` | **Ad hoc, implementation-specific** | Not a biological cutoff at all — a numerical safeguard against KDE noise, set from observing a real noise peak >400× smaller than the true peak; no field reference exists for this because it's an artifact of this specific detection method |
+| 6 | Normalization `target_sum` | 1e4 | **Referenced** | [scanpy `normalize_total` docs](https://scanpy.readthedocs.io/en/stable/generated/scanpy.pp.normalize_total.html); load-bearing citation is [CellTypist's own tutorial](https://celltypist.readthedocs.io/en/latest/notebook/celltypist_tutorial.html), quoted directly: *"pre-processed (and required) as log1p normalised expression to 10,000 counts per cell"* — confirmed by fetching the page |
+| 7 | CellTypist confidence split | `conf_score < 0.5` (diagnostic only, not a filter) | **Not actually referenced — corrected 2026-08-31** | Fetched CellTypist's own tutorial directly to check this: it displays `conf_score` in its output (values ~0.13–0.99) but documents **no threshold** for "low confidence." The 0.5 cutoff is a generic borrowed convention (probability midpoint), not a CellTypist-specified value. Doesn't affect correctness here since it's diagnostic only — no cells are ever dropped on it — but the "Referenced" label in an earlier version of this table was wrong and is fixed here. |
+| 8 | Cell-state (GC B cell / Tfh) score threshold | mean + 2×std within broad CellTypist category (`n_std=2.0`) | **Adaptive** | `scanpy.score_genes` output scale depends on the specific marker panel and this dataset's background expression — no portable literature value exists to reference |
+| 9 | Communication `specificity_rank` | ≤ 0.05 | **Adaptive / ad hoc** | `liana`'s own tutorial reference (0.01) was tested directly and rejected — it excludes CD40LG-CD40 due to a tie floor in this data's rank distribution (see merge.py) |
+| 10 | Communication `magnitude_rank` | ≤ 0.6 | **Adaptive / ad hoc**, picked by eyeballing a gap in 15 sorted values | No referenced value exists for this statistic at all; explicitly flagged as not validated-optimal (see merge.py's threshold-honesty note) |
+| 11 | `liana` `expr_prop` (minimum per-group expressed fraction before a pair is even scored) | 0.1 | **Referenced** | [`liana.method.rank_aggregate` docs](https://liana-py.readthedocs.io/en/latest/generated/liana.method.rank_aggregate.__call__.html): default `0.1` — confirmed by fetching the page. Not set by this project's code; inherited as-is. Explains why CXCL13/ICOS/IL21 never entered scoring at all (Step 3) |
+| 12 | `liana` `n_perms` | 1000 | **Referenced** | Same docs page: default `1000` — confirmed. Pinned explicitly rather than left implicit, to avoid silent reproducibility drift if `liana` changes its own default in a future release |
+| 13 | AUCell threshold (Step 4) | **Not yet chosen** | N/A — open | Flagged in Risks & Mitigations as "arbitrary and drives the headline result"; the plan's intent is to benchmark against the tonsil control's own score distribution rather than pick a fixed number, for the same structural reason as #8 and #9/10 below |
+
+*(RNG seeds — `random_seed: 0` in the pipeline config, `seed=1337` pinned in `communication.py` to match `liana`'s own default — are reproducibility settings, not filtering cutoffs, so they're not in this table.)*
+
+**Honest caveat on rows 1–2, checked while sourcing the citation above, not assumed:** the Seurat
+PBMC3k tutorial's `200`/`3` values are that specific tutorial's chosen defaults for one specific 2,700-cell
+PBMC dataset that became a widely-copied convention across the field — a real, traceable reference (cited
+above), but a culturally-adopted one, not a value independently derived or validated for *this* project's
+three tissues. Same category of caveat as the mito-% conventions in row 3, which were tested against real
+per-cell-type retention and rejected; rows 1–2 have not been given that same empirical check against MG/
+Sjögren's/tonsil data specifically, and are flagged here as worth that same scrutiny if they ever become
+consequential to a downstream claim.
+
+**Why the split isn't arbitrary.** Rows 1, 2, 6, 11, 12 are all technical/methodological conventions
+that don't depend on this project's specific biology — the same constant is correct regardless of
+which tissue or disease is being analyzed, so a referenced value is exactly right and is what's used.
+Rows 3, 4, 8, 9, 10, and the still-open row 13 all share the opposite property: each is a statistic
+computed from something intrinsic to *this* dataset (this dataset's own per-cell-type mito
+distribution, this dataset's own simulated doublets, this dataset's own marker-score background,
+this dataset's own ligand/receptor detection rates) that doesn't transfer from a number published
+against a different dataset's tissue, depth, protocol, or cell-type mix. Row 3 is the one case where
+a referenced alternative was directly tested against real per-cell-type retention and shown to fail;
+row 9 is the one case where the closest thing to a field reference (`liana`'s own tutorial value) was
+tested and also failed, for a documented, data-specific reason (the tie floor). Rows 4, 8, and 10 have
+no candidate referenced value to test in the first place, because the underlying statistic's scale
+isn't standardized across studies.
 
 ## 5. Deliverables checklist
 
