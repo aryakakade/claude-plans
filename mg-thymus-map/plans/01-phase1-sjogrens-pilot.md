@@ -1,9 +1,10 @@
 # Phase 1 Plan — MG (Thymus) vs. Sjögren's Syndrome Pilot
 
-Status: **In progress.** Phase 0 (repo scaffold) and Phase 1 Steps 1–2 (data
-assembly, QC/normalization/annotation/integration) are implemented, tested, and
-verified against real downloaded data as of 2026-08-27 — see the "Implementation
-notes" under each step below for what was actually built and found. Steps 3–7 are
+Status: **In progress.** Phase 0 (repo scaffold) and Phase 1 Steps 1–3 (data
+assembly, QC/normalization/annotation/integration, and TLS signature
+derivation including spatial validation) are implemented, tested, and
+verified against real downloaded data as of 2026-09-01 — see the "Implementation
+notes" under each step below for what was actually built and found. Steps 4–7 are
 still at the planning stage, not yet started.
 Parent plan: [`00-overview.md`](00-overview.md)
 
@@ -47,8 +48,10 @@ risky. Sjögren's is a reasonable first target to pair with MG because:
       are QC'd/normalized/annotated, and a batch-effect check + Harmony integration was added —
       not originally itemized here, but necessary to trust the shared vocabulary across datasets.
       (Doublet detection was briefly a gap the same day — closed before end of day; see Step 2.)
-- [ ] An MG-derived TLS gene/cell-state signature exists, with a written rationale for how it was
-      derived. **Not started.**
+- [x] An MG-derived TLS gene/cell-state signature exists, with a written rationale for how it was
+      derived. **Done 2026-08-28/2026-09-01** — 25-gene signature (13 literature_prior + 12
+      mg_derived), plus spatial validation confirming it scores significantly higher in
+      germinal-center/medulla Visium niches than cortex — see Step 3 implementation notes.
 - [ ] That signature has been scored (AUCell) against the Sjögren's dataset, with a quantified
       "proportion shared" metric, benchmarked against the healthy tonsil control. **Not started.**
 - [ ] Stromal populations in Sjögren's have been isolated after subtracting the shared signal, with a
@@ -57,9 +60,9 @@ risky. Sjögren's is a reasonable first target to pair with MG because:
       target/drug list with provenance (which database, which gene, which compound). **Not
       started.**
 - [~] Every stage above has unit tests (synthetic fixtures) and the full pipeline has one integration
-      test (tiny fixture data) — all passing via `make test`. **Steps 1–2 fully covered, Step 3
-      nearly complete (cell-state calling, communication analysis, and the signature-merge/output
-      artifact all covered; only spatial validation remains) — 86 tests total, `make test` green;
+      test (tiny fixture data) — all passing via `make test`. **Steps 1–3 fully covered (cell-state
+      calling, communication analysis, signature-merge, spatial loader, and spatial validation all
+      covered) — 103 tests total, `make test` green;
       Steps 4–7 not yet built.**
 - [x] `README.md` documents how to set up the environment and run the Phase 1 pipeline
       end-to-end via `make phase1` (or equivalent). **Done in Phase 0**; will need a further update
@@ -428,7 +431,7 @@ approved list.
 **Open sub-question:** see section 7, question 4 (automated vs. manual annotation, and who
 reviews biological calls).
 
-### Step 3 — TLS isolation (from MG data only) — Status: 🔶 In progress (cell states, communication, and signature-merge done; spatial validation remains)
+### Step 3 — TLS isolation (from MG data only) — Status: ✅ Complete (2026-09-01, spatial validation closes out the step)
 
 **Goal:** derive "the MG immune structure" — the shared architecture to project onto Sjögren's.
 
@@ -722,6 +725,204 @@ Left to close out Step 3: the spatial validation sub-step below.
   Cell Reports paper's actual data-deposit accession (GEO/Zenodo/other) for its Visium samples before
   anything can be downloaded or reprocessed.
 
+  **Done — 2026-09-01.** The figshare deposit (`res.cxg.h5ad`, 3.5 GB) was downloaded manually by the
+  user and dropped in `data/raw/mg_spatial/`. Built `src/mg_thymus_map/data/mg_spatial.py`
+  (`load_mg_spatial`) and `src/mg_thymus_map/signature/spatial_validation.py`
+  (`score_signature_aucell`/`compare_niche_enrichment`), 17 new unit tests (103 total, `make test`
+  green), config entry added to `configs/phase1_mg_sjogrens.yaml`.
+
+  **Real finding, checked before use, not assumed: the h5ad bundles three separate studies.**
+  `obs['project']` has `Yasumizu_et_al` (36,838 spots, `condition` thymoma/hyperplasia -- the actual
+  MG Cell Reports data this project is cleared to use per section 3a), `Helmi_et_al` (18,329 spots)
+  and `Suo_et_al` (4,629 spots), both entirely `condition == "normal"` -- other public reference
+  thymus atlases the depositors integrated for context, matching this section's own expectation of
+  "normal fetal/pediatric thymus controls" bundled alongside the MG data. `load_mg_spatial` defaults
+  to `Yasumizu_et_al` only (an explicit opt-in is required for the other two), since their own
+  license/access terms haven't been independently checked the way section 3a checked Yasumizu's.
+  **Worth a mentor/SRC confirmation before treating this scoping decision as final**, same caveat
+  already stated for section 3a generally.
+
+  **"Repeat the cleaning methods" -- what carried over and what couldn't, checked rather than
+  assumed identical.** The deposit is Yasumizu et al.'s own fully-processed atlas object: QC metrics
+  (`n_genes_by_counts`, `total_counts`, `pct_counts_mt`), scVI/Harmony embeddings, Leiden clusters,
+  and spatial niche labels are already computed by the depositors, and `.X` is already
+  `normalize_total`+`log1p`'d with **no raw-counts layer retained** (confirmed by inspection:
+  `expm1(.X).sum(axis=1)` is constant at ~7053 across every spot checked, i.e. scanpy's
+  per-dataset-median `normalize_total` default -- not this project's own `target_sum=1e4`
+  convention -- and `.raw`/`.layers` are both empty). Consequences, decided explicitly rather than
+  left implicit:
+  - **Filtering: reused the exact same functions** (`qc.filters.filter_cells`,
+    `adaptive_mito_threshold`, `filter_genes`) unmodified, on the depositors' own precomputed QC
+    columns, at the same `min_genes_per_cell=200` project convention. Found the **same NaN-mito edge
+    case as GSE233180** (1 zero-count spot, `pct_counts_mt` = 0/0 = NaN) -- `adaptive_mito_threshold`'s
+    existing `nanmedian` fix handled it correctly without any code change, a real (if small) piece of
+    evidence the earlier fix generalizes.
+  - **Normalization: could NOT be re-run** -- there are no raw counts to normalize with
+    `target_sum=1e4`. Documented as a limitation rather than silently skipped. Mitigation: AUCell
+    scoring is rank-based within each spot, and `normalize_total` followed by `log1p` is a
+    monotonic transform of each spot's raw counts regardless of the target sum used -- so gene
+    ranks within a spot, and therefore the AUCell score, are unaffected by which target sum the
+    depositors used. This is a real property of the method, not just a hopeful assumption, but it's
+    still worth a mentor's sanity check given it wasn't independently re-derived here.
+  - **Doublet detection: deliberately skipped**, not an oversight -- doublets are a per-droplet
+    single-cell concept; Visium spots legitimately contain multiple cells by design.
+  - **Cell-type annotation: not re-run** -- the depositors already ship per-spot deconvolution
+    scores for ~60 cell states (`B_GC`, `CD4_Tfh`, `cTEC`, etc. in `obs`), a finer-grained and more
+    directly comparable source than re-running CellTypist on spot-level (multi-cell) expression
+    would produce.
+
+  **QC results (Yasumizu_et_al, 36,838 spots -> filtered):** adaptive mito threshold **5.26%**
+  (`min_genes=200`, `min_cells_per_gene=3`) -- **36,403/36,838 spots kept (98.8%)**, 13,206/13,207
+  genes kept. Retention is high and even across the 10 samples (94.8-100%) and across
+  thymoma/hyperplasia (98.8%/98.6%), as expected for an already-curated Visium deposit. One real,
+  investigated-not-assumed exception: the `junction` niche (cortico-medullary boundary) retained only
+  **38.6%** of its spots (123/319) -- checked directly rather than accepted at face value: junction
+  spots have a median of only 160 detected genes (vs. thousands in cortex/medulla), so most fail the
+  `min_genes=200` floor on their own QC metrics, not from any filtering bug. Plausibly a real
+  boundary-zone sparsity effect (thin transitional tissue, fewer captured transcripts) rather than a
+  processing artifact, but not independently confirmed against the source paper. Saved to
+  `data/interim/mg_spatial_qc.h5ad` (36,403 x 13,206; gitignored, regenerated from raw + this
+  pipeline, same convention as the other interim files).
+
+  **Spatial validation result -- the actual Step 3 close-out, real numbers:** all **25/25** signature
+  genes are present in the Visium gene panel (no coverage gap). AUCell-scored every cleaned spot
+  against the full 25-gene signature (`decoupler.mt.aucell`, `tmin=5`), then ran one-sided
+  Mann-Whitney U tests (BH-corrected across niches) comparing each niche's score against `cortex`:
+
+  | Niche | n spots | Median score | Cortex median | p-value (BH-adj.) |
+  |---|---|---|---|---|
+  | `medulla_GC` (germinal center) | 117 | **0.148** | 0.050 | 9.1e-70 |
+  | `medulla` | 3,711 | **0.115** | 0.050 | ~0 |
+  | pooled medulla/medulla_GC/medulla_FN1 | 4,178 | **0.110** | 0.050 | ~0 |
+  | `medulla_FN1` | 350 | 0.055 | 0.050 | 0.248 (not significant) |
+  | `stroma` | 3,141 | 0.039 | 0.050 | 1.000 (not significant) |
+  | `junction` | 123 | 0.033 | 0.050 | 1.000 (not significant) |
+
+  **Update, 2026-09-01 (see "Limitations (2),(3),(4) closed" below for the full analysis): the
+  normal-thymus baseline check found broad `medulla` enrichment also occurs in normal (non-MG)
+  thymus, so `medulla_GC` specifically -- not pooled `medulla` -- is the disease/GC-specific
+  result and should be read as this validation's headline finding.**
+
+  **The signature is significantly and substantially enriched specifically in medulla and
+  medulla_GC (germinal-center) spots** -- medulla_GC has the single highest median score of any
+  niche in the tissue, matching the biological hypothesis this check exists to test (Step 3's
+  signature was derived from GC B cell / Tfh communication evidence; it should, and does, score
+  highest in the spatially-defined germinal-center niche). Held up when split by condition: the
+  pooled medulla comparison stays significant (p~0) in both thymoma (n=3,018) and hyperplasia
+  (n=1,160) subsets separately, not just pooled. **Real specificity, not a blanket "everything is
+  high" artifact**: `stroma` and `junction` are NOT enriched (medians at or below cortex), and
+  `medulla_FN1` (a distinct fibronectin-rich medullary subregion, per the original niche_annot_v2
+  scheme) does not reach significance either -- the signature discriminates between spatial regions
+  rather than trivially scoring high everywhere, which is exactly the "not circular / not just
+  generic immune genes" defense this check was added for (see question 6). Full results table saved
+  to `data/processed/spatial_validation_results.csv` (gitignored, regenerated by script).
+
+  **AUCell-rank-invariance claim -- empirically confirmed, 2026-09-01, closing limitation (1)
+  below.** The argument that AUCell scores don't depend on which `target_sum` was used to normalize
+  (since `normalize_total` rescales every gene in a given cell/spot by the same factor, and `log1p`
+  is monotonic, so within-cell gene ranking is unchanged regardless of target_sum) was tested
+  directly rather than left as reasoning alone: took real MG scRNA data
+  (`data/interim/mg_with_cell_states.h5ad`, which -- unlike the spatial deposit -- has raw counts in
+  `layers['counts']`), normalized the *same* raw counts twice (`target_sum=1e4`, this project's own
+  convention, vs. `target_sum=7053`, matching the constant row-sum found in the MG spatial deposit's
+  already-normalized `.X`), and AUCell-scored both against the real 25-gene signature across all
+  45,387 cells. Result: **scores were numerically identical between the two normalizations -- max
+  absolute difference 0.0000000000, Pearson correlation 1.0000000000, 0/45,387 cells with any
+  rank-order difference.** The invariance claim is now empirically confirmed on real data, not just
+  argued mathematically.
+
+  **Limitations (2), (3), (4) below -- all closed 2026-09-01**, by reading the actual Yasumizu et al.
+  paper (obtained via its Osaka University institutional-repository open-access PDF, since the
+  ScienceDirect/Cell Reports page 403s to automated fetches) and running two follow-up analyses.
+  `bootstrap_median_diff` (`spatial_validation.py`) was added as a small, tested, reusable function
+  for limitation (2)'s check; the normal-baseline comparison for (3) was run ad hoc (not saved as a
+  permanent module, consistent with how this project's other one-off statistical checks --
+  sensitivity sweeps, permutation-depth checks -- are documented as findings here rather than built
+  into the pipeline).
+
+  **(4) Cross-check against the paper's own reported findings -- done, and it corroborates the
+  result.** The paper explicitly reports **CXCL13** as "a key chemokine for the maintenance of the
+  GC," stating it "was present both inside and around GCs in the medulla" -- CXCL13 is in this
+  project's signature (`literature_prior`). It also reports **CCL19** as specific to the medulla
+  ("CCL19-CCR7 interactions were specific to ... the medulla"; medulla-resident mTECs "expressed
+  both CCL25 and CCL19"), and **CXCL10** as expressed by migDCs (a medulla-enriched population).
+  CCL19 and CXCL10 are also both in the signature (`literature_prior`). **3 of the 25 signature
+  genes are thus directly, independently corroborated by the original paper's own narrative as
+  medulla/GC-associated** -- a real external check, not just internal consistency between our
+  signature and the depositors' own spatial cluster labels. Honestly, the paper's focus is a
+  specific chemokine-receptor axis analysis (CCR9-CCL25 for cortex, CCR7-CCL19/CXCL13 for
+  medulla/GC), not an exhaustive profiling of every gene in a 25-gene signature -- the other 22
+  genes (all 12 `mg_derived`, plus CCL2/3/4/5/8/18/21, CXCL9/11, TNFSF13B) are simply not
+  individually named in the paper's main text. Absence of mention isn't evidence against them, just
+  outside this particular paper's stated scope (most are costimulatory molecules -- CD40/CD40LG/
+  CD28/CD86/LTB -- not chemokines, and this paper's spatial analysis centers on chemokine-receptor
+  pairs specifically).
+
+  **(3) Normal-thymus baseline -- done, and it meaningfully refines the headline claim, not just
+  confirms it.** Read the paper's STAR Methods data-availability table to identify what
+  `Helmi_et_al`/`Suo_et_al` (the h5ad's `obs['project']` spelling; the paper's own reference list
+  spells the author "Heimli") actually are: **Heimli et al. 2022** (Front. Immunol. 13:1092028,
+  public GEO **GSE207205**) and **Suo et al. 2022** ("Mapping the developing human immune system
+  across organs," *Science* 376, doi:10.1126/science.abo0510, public Human Cell Atlas
+  fetal-immune portal) -- both peer-reviewed-published, publicly-accessible datasets, meeting the
+  same ISEF Human Participants/Tissue exemption already checked for this project's other four
+  datasets (section 3a). Documented in `mg_spatial.py`'s docstring and the config; safe to use.
+  Loaded all three projects (59,796 spots total), applied the same cleaning as before (single
+  pooled adaptive mito threshold this time: 5.85%, 98.9% retention), AUCell-scored, and compared
+  medulla vs. cortex **within each project separately**:
+
+  | Project | n medulla spots | Medulla median | Cortex median | p-value |
+  |---|---|---|---|---|
+  | Yasumizu_et_al (MG) | 3,734 | 0.116 | 0.051 | ~0 |
+  | Heimli_et_al (normal) | 3,674 | 0.136 | 0.078 | ~0 |
+  | Suo_et_al (normal) | 797 | 0.124 | 0.063 | 2.7e-279 |
+
+  **Important, honest refinement: broad medulla-vs-cortex enrichment is NOT MG-specific** -- both
+  normal-reference projects show the *same* significant medulla enrichment as the MG tissue, if
+  anything with a larger absolute gap in Heimli's normal data. This makes biological sense: the
+  medulla's core chemokine axis (CCL19-CCR7 organizing T-cell/DC trafficking) is normal thymic
+  physiology, not an MG-specific pathological feature -- consistent with the paper's own framing
+  ("CCL19-CCR7 interactions were specific to ... the medulla" in "both tumor and normal tissues").
+  **What IS MG-specific, and the reason this doesn't undercut the validation:** `medulla_GC` and
+  `medulla_FN1` are granular sub-niche labels that **only exist in the Yasumizu_et_al (MG) data** --
+  both normal-reference projects have **zero** spots labeled `medulla_GC` or `medulla_FN1` (confirmed
+  directly from the obs counts), because the depositors only subdivided medulla into a GC-containing
+  cluster where ectopic germinal centers are actually present to cluster out -- consistent with the
+  well-established biology that ectopic GC formation in thymic medulla is itself a pathological
+  feature of MG, not a normal-thymus phenomenon. **This means `medulla_GC`'s 9.1e-70 enrichment
+  result (the strongest result in this validation) is the one that's actually disease/GC-specific,
+  and should be read as the headline finding rather than the broader pooled-medulla comparison**,
+  which reflects generic medullary chemokine biology present in both healthy and diseased thymus.
+  Revises how the original headline framing (2026-09-01, first pass) should be read -- worth noting
+  explicitly rather than letting the more impressive-sounding "pooled medulla" number stand
+  unqualified.
+
+  **(2) medulla_FN1 -- done, genuine biology confirmed two independent ways, both pointing the same
+  direction.** First, the paper itself directly answers this: "The stroma and medulla_FN1 regions
+  were characterized by high numbers of endothelial cells, fibroblasts, and vascular smooth muscle
+  cells" -- i.e. the depositors' own cellular-composition analysis groups `medulla_FN1` with
+  `stroma`, not with the GC/medulla lymphoid compartment. Since this project's own result already
+  found `stroma` is NOT enriched, `medulla_FN1`'s null result is exactly what a stromal-composition
+  region should show -- a real, paper-confirmed biological distinction, not a data artifact. Second,
+  ran `bootstrap_median_diff` (2,000 resamples) on the actual median-score gap vs. cortex, for scale
+  against the two clearly-significant niches:
+
+  | Niche | n | Median diff vs. cortex | 95% bootstrap CI | vs. medulla_GC's effect |
+  |---|---|---|---|---|
+  | medulla_GC | 118 | 0.099 | [0.087, 0.109] | -- |
+  | medulla | 3,734 | 0.065 | [0.062, 0.067] | 66% as large |
+  | medulla_FN1 | 350 | 0.004 | [0.0005, 0.0067] | **4% as large** |
+
+  Note this CI barely excludes zero, in slight tension with the earlier Mann-Whitney test's
+  BH-corrected p=0.248 (not significant) -- worth stating honestly rather than picking whichever
+  number reads better: the two tests answer different questions (stochastic dominance across the
+  whole distribution vs. a direct median-difference estimate) and can disagree at a genuinely
+  marginal effect size like this one. Read together with the paper's compositional evidence above,
+  the weight of evidence favors "real, tiny, non-GC biological signal consistent with a
+  stromal-like composition" over "purely an underpowering artifact" -- but the effect, if real, is
+  only ~4-6% the size of the two genuine GC/medulla effects, i.e. functionally negligible either
+  way for this validation's conclusion.
+
 **Tests to add later:** unit test that signature-derivation is deterministic given fixed input +
 seed; a test that the output signature format matches what Step 4 expects (schema contract); a
 test that every gene in the output signature carries a provenance tag (literature-prior or
@@ -913,16 +1114,16 @@ isn't standardized across studies.
 - [x] `src/mg_thymus_map/qc/` — QC + normalization + annotation. **Done**, with the doublet-detection
       gap noted in Step 2. Also includes `annotate/` (CellTypist wrapper, a separate subpackage) and
       batch-effect/integration code (`qc/integration.py`) that wasn't originally itemized here.
-- [~] `src/mg_thymus_map/signature/` — MG TLS signature derivation. **In progress (Step 3): seed
-      signature, marker panels, cell-state calling, cell–cell communication analysis, and the
-      signature-merge/output artifact all done (real 25-gene signature produced); only spatial
-      validation remains.**
+- [x] `src/mg_thymus_map/signature/` — MG TLS signature derivation. **Done (Step 3): seed signature,
+      marker panels, cell-state calling, cell–cell communication analysis, the signature-merge/output
+      artifact (real 25-gene signature), and spatial validation (`spatial_validation.py`, real
+      AUCell-vs-niche enrichment result) all complete — 2026-09-01.**
 - [ ] `src/mg_thymus_map/scoring/` — AUCell projection + statistics. **Not started (Step 4).**
 - [ ] `src/mg_thymus_map/stromal/` — subtraction / stromal extraction. **Not started (Step 5).**
 - [ ] `src/mg_thymus_map/pharma/` — DGIdb/ChEMBL clients + ranking. **Not started (Step 6).**
 - [x] `tests/unit/`, `tests/integration/`, `tests/fixtures/` covering all of the above. **Done for
-      Steps 1–2 and Step 3's work so far** (86 tests total, 100% coverage on covered modules);
-      Step 3's spatial-validation sub-step and Steps 4–7 have none yet.
+      Steps 1–3** (103 tests total, `make test` green, 100% coverage on covered modules including
+      `mg_spatial.py` and `spatial_validation.py`); Steps 4–7 have none yet.
 - [x] `README.md` — updated with Phase 1 setup/run instructions. **Done in Phase 0**; needs a
       revisit once `pipeline.py` actually orchestrates Step 3+ (currently config-loading only).
 - [x] `Makefile` — `make setup`, `make test`, `make phase1`. **Done in Phase 0.**
@@ -1200,7 +1401,7 @@ same day, closed before end of day — see Step 2).
 |---|---|---|---|---|
 | 1 | Aug 26 – Sep 1 | ✅ **Actually done Aug 26.** Phase 0: proper repo scaffold (`uv` + `pyproject.toml`, `src/mg_thymus_map/` layout, `configs/`, `tests/{unit,integration,fixtures}`), `pytest` + coverage wired up, `Makefile` (`setup`/`test`/`phase1`). Kick off downloads for all 3 datasets (GSE233180, GSE272409, Human Tonsil Atlas) — start early since the tonsil atlas's Zenodo/Bioconductor distribution needs its own loader path. | ~15–20 | ~2.5–3.5 hrs |
 | 2 | Sep 2 – Sep 8 | ✅ **Actually done Aug 26–27, ~11 days early.** Steps 1–2 in full: load, QC, normalize, and annotate all 3 datasets onto the shared cell-type vocabulary; batch/dataset-effect check and integration (Harmony/scVI) if needed. Unit tests for QC filters and vocabulary validation written alongside, not bolted on after. This is historically where real-data pipelines lose the most time to surprises (mismatched gene symbols, unexpected metadata gaps) — the extra week of buffer here is deliberate. **Actual surprises hit:** real bugs (not gene-symbol mismatches, but a NaN-propagation bug, a normalization-target bug, and a harmonypy/scanpy version-compatibility bug), all found and fixed; doublet detection didn't get built. | ~30–40 | ~5–6.5 hrs |
-| 3 | Sep 9 – Sep 15 | Step 3 in full: TLS signature seeded with the 12-chemokine prior and refined on MG data, with provenance tagging; cell–cell communication analysis (`liana-py`/`squidpy`); **full spatial validation** — reprocess the MG Cell Reports Visium data with our own AUCell scoring against the derived signature, not the gene-overlap fallback. Unit tests for signature determinism and schema. | ~25–35 | ~4–5.5 hrs |
+| 3 | Sep 9 – Sep 15 | **Actually done early, 2026-08-28 to 2026-09-01.** Step 3 in full: TLS signature seeded with the 12-chemokine prior and refined on MG data, with provenance tagging; cell–cell communication analysis (`liana-py`/`squidpy`); **full spatial validation** — reprocess the MG Cell Reports Visium data with our own AUCell scoring against the derived signature, not the gene-overlap fallback. Unit tests for signature determinism and schema. | ~25–35 | ~4–5.5 hrs |
 | 4 | Sep 16 – Sep 22 | Step 4: AUCell cross-disease projection onto Sjögren's + tonsil, with proper statistics (distribution comparison, multiple-testing correction, threshold-sensitivity reporting). Step 5: stromal extraction on Sjögren's, plus the ground-truth comparison against the GSE272409 paper's reported fibroblast/pericyte findings and Source Data (there is no reprocessable spatial dataset on the Sjögren's side — see question 6's correction). Tests for the AUCell wrapper, thresholding stats, and the subtraction/regression logic against synthetic planted-signal fixtures. | ~30–38 | ~5–6 hrs |
 | 5 | Sep 23 – Sep 29 | Step 6: DGIdb/ChEMBL pharmacogenomic mapping, with client tests against recorded API-response fixtures (no live network calls in CI), proper dedup/ranking with full provenance. Step 7: validation against positive controls (BAFF, CXCL13, plus the spatial cross-checks from weeks 3–4), full findings write-up, README finalized, full test suite pass. | ~22–31 | ~3.5–5 hrs |
 | — | Sep 30 | Buffer day / final review / submission. | ~4–6 | — |
