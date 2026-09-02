@@ -989,6 +989,20 @@ finding:**
    median 0.130 vs. 0.107, **p = 7.5×10⁻²⁶** (BH-adjusted 1.5×10⁻²⁵). SICCA TLS-region trends the
    same direction (median 0.118) but doesn't clear significance at n=87 (p=0.086) — consistent with
    SICCA being a symptomatic-but-non-autoimmune comparator, not a null population.
+
+   **Patient-level re-verification, added 2026-09-02 — this headline result is NOT a pseudoreplication
+   artifact.** After finding that item 5's PSS-vs-SICCA claim didn't survive correcting for
+   within-patient cell non-independence, re-checked this comparison (the actual Step 4 headline) the
+   same way, rather than assuming it was fine because it wasn't the one that broke. Patient/donor-level
+   Mann-Whitney (7 PSS patient medians vs. 4 tonsil donor medians — tonsil capped at
+   `max_donors=4`, see Step 1): **p = 0.021**, PSS medians (0.111–0.154) sitting above most tonsil
+   donor medians (0.096–0.118). Then the same exact cluster-permutation check used for item 5
+   (pooled-cell median diff, calibrated against all C(11,7)=330 possible ways to split these 11
+   patients/donors into groups of 7 and 4): observed diff **+0.0231**, and **not one of the other 329
+   possible relabelings produced a diff that large — exact one-sided p = 0.00303, the theoretical
+   minimum achievable p-value at this sample size** (1/330). This is about as strong a confirmation
+   as this dataset can mathematically produce: the true PSS/tonsil split is the single most extreme
+   split possible. Saved to `data/processed/step4_pss_tonsil_patient_level_test.csv`.
 4. **Specificity check** (directly answers the risk-table's "circular / trivially matches generic
    immune genes" concern): within Sjögren's, TLS-region cells score far higher than non-TLS-region
    cells of the same tissue — PSS median 0.130 vs. 0.028 (p≈7×10⁻²¹²), SICCA median 0.118 vs. 0.028
@@ -1060,7 +1074,14 @@ should not be reported as confirmed — the direction trends the expected way bu
 distinguishable from chance at this sample size. Items 1–4 (the tonsil comparison, the headline
 proportion, the sensitivity sweep, and the within-Sjögren's specificity check) are unaffected by this
 correction and remain the actual finding; only the PSS/SICCA autoimmune-specificity refinement on top
-of them is now retracted pending more data or a proper patient-level/mixed-effects re-analysis. This
+of them is now retracted pending more data or a proper patient-level/mixed-effects re-analysis.
+**Item 3's core comparison (PSS TLS-region vs. tonsil TLS-region) has since been explicitly
+re-verified at the patient level, not just assumed robust because it wasn't the claim that broke —
+exact cluster permutation gives p=0.00303, the mathematical minimum possible at n=7/4, i.e. the
+strongest confirmation this dataset can produce.** The overall Step 4 finding (MG signature
+transfers to real Sjögren's TLS tissue) is therefore unaffected by the item 5 retraction and is
+independently confirmed at the correct unit of replication, not resting on a cell-level p-value that
+might hide the same pseudoreplication problem that sank item 5. This
 is Step 4's actual Phase 1 deliverable — the cross-disease finding Steps 1–3 were built toward.
 
 ### Step 5 — Stromal extraction
