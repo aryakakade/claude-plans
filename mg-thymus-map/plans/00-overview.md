@@ -90,6 +90,34 @@ Phases 2–6 are placeholders at this level of detail — each will get its own 
 Phase 1 has validated the pipeline shape and surfaced anything that needs to change in the general
 design. Re-planning them in detail now would mean re-planning them again after Phase 1 anyway.
 
+**Deferred methodology note for Phase 5 (added 2026-09-02, not yet implemented):** once all five
+diseases have their own active ligand-receptor (L-R) interaction sets (`signature/communication.py`'s
+`liana` output, one run per disease — Step 3's per-disease analog), add a **permutation test** for
+whether the number of L-R pairs shared across ≥k diseases is more than chance overlap, plus a
+tonsil-baseline subtraction (same "shared architecture is normal here" logic as Step 4's tonsil
+reference) to separate "biologically conserved across autoimmune disease" from "just the trivial
+germinal-center floor every lymphoid tissue has." An external tool suggested this and a draft
+implementation (2026-09-02 session) — the core idea is sound and matches this project's own
+established pattern (empirical null over hand-picked cutoffs, e.g. Step 3/4's bootstrap CIs and
+tonsil-derived thresholds), **but the draft null model has a real flaw to fix before trusting it**:
+it samples each disease's N active pairs *uniformly* from the full L-R database, which ignores that
+some pairs (generic costimulation like CD28-CD86, adhesion/integrin, HLA-based pairs) are detected
+in almost any T/B-cell-containing tissue regardless of disease biology — a uniform null
+systematically underestimates their chance-overlap rate and would call generic overlap
+"significant." This is the same class of confound Step 3 already found for real in this project's
+own data (`liana`'s `specificity_rank` tie floor, and CXCL13/IL21/ICOSLG's `expr_prop` detection
+floor) — worth remembering as precedent, not a new/hypothetical concern. Fix before use: either (a)
+restrict the sampling universe per iteration to pairs that clear the same detectability floor
+(`expr_prop`) in *that specific* dataset, not the full curated database, or better (b) weight the
+null by each pair's own empirical detection frequency across all datasets in hand (disease + tonsil)
+rather than uniform sampling — a degree-preserving permutation. Also: pin a seed explicitly (this
+project's convention everywhere reproducibility matters — `liana`'s `seed=1337`,
+`bootstrap_median_diff`'s `np.random.default_rng(seed)`), parameterize the "≥k diseases" overlap
+threshold instead of hardcoding it and sweep it (only 6 possible values with 5 diseases, cheap to
+check), and note this project uses `liana-py`'s consensus `rank_aggregate`, not CellChat (the
+suggesting tool's example) — decide explicitly whether to switch tools or adapt the test to liana's
+`specificity_rank`/`magnitude_rank` output when this is actually built.
+
 ## 5. Proposed repository layout
 
 *(For reference only — nothing below is created yet.)*
