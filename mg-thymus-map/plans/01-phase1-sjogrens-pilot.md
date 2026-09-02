@@ -997,6 +997,26 @@ finding:**
    (median 0.130 vs. 0.118, p=0.006) — the shared-architecture signal tracks with genuine autoimmune
    Sjögren's pathology specifically, not with sicca symptoms generically.
 
+   **Bootstrap effect-size check on this one comparison, added 2026-09-02 — a real caveat, not just
+   confirmation.** The user asked whether class imbalance (570 PSS vs. 87 SICCA TLS-region cells)
+   should be fixed with SMOTE-style oversampling before trusting item 5. It shouldn't — Mann-Whitney
+   already handles unequal n correctly, and synthesizing fake SICCA cells would inflate apparent
+   power without adding real information (pseudo-replication). The honest way to check whether n=87
+   is a real limitation is `bootstrap_median_diff` (the same function used for item 2 and for Step
+   3's `medulla_FN1` case), applied here to PSS-vs-SICCA directly: **median diff +0.0122, 95% CI
+   [-0.0070, 0.0286]** — this CI straddles zero, unlike the PSS-vs-tonsil CI in item 2 ([0.0168,
+   0.0289], which excludes it cleanly. Per `bootstrap_median_diff`'s own documented logic (a CI that
+   excludes zero despite low n argues against pure underpowering; one that's comparably wide and
+   straddles zero argues *for* it): this is the "underpowered, not confidently zero" case. So item
+   5's Mann-Whitney significance (p=0.006, a test of stochastic dominance across the whole
+   distribution) and this CI (a test of the median-difference effect size specifically) are not
+   contradictory, but they tell a more careful story together than either alone — **the PSS>SICCA
+   direction is real and worth reporting, but treat its magnitude as not yet pinned down at n=87,
+   not as a settled effect size**, unlike items 1-4, which are decisively powered. Worth flagging
+   explicitly in the eventual Step 7 write-up/Limitations section, and revisiting if a later phase
+   adds more SICCA samples. Saved to `data/processed/step4_headline_metric.csv` (added as a second
+   row alongside item 2's bootstrap result).
+
 **Bottom line:** the MG-derived TLS signature transfers to real Sjögren's disease tissue — Sjögren's
 TLS-region cells look more like genuine lymphoid/TLS architecture (calibrated against a real healthy
 tonsil reference) than like the rest of Sjögren's own tissue, the effect is specific to true PSS
