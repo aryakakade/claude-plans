@@ -1021,15 +1021,35 @@ finding:**
    the failure mode pseudoreplication predicts, now confirmed on this project's own real data rather
    than left as a theoretical concern.
 
-   **Current honest status of item 5: PSS vs. SICCA is NOT a confirmed finding.** The direction (PSS
-   trending higher) is still visible in both the cell-level test and the raw patient medians, but at
-   n=7/6 patients there isn't enough power to distinguish it from chance. This doesn't undermine
-   items 1–4 — their effect sizes (p as low as 10⁻²¹²) are so large they would very likely survive
-   the same patient-level correction, but that hasn't been explicitly re-verified either, and is
-   worth doing before Step 7's write-up treats any Step 4 cell-level p-value as final. Data:
-   `data/processed/step4_pss_vs_sicca_patient_level.csv` (per-patient scores) and
-   `step4_pss_vs_sicca_patient_level_test.csv` (the test result); the superseded cell-level bootstrap
-   CI remains in `step4_headline_metric.csv` for the record, now annotated as superseded.
+   **One more legitimate check, same date: an exact patient-label (cluster) permutation test — more
+   sensitive than the crude per-patient-median test, still not significant.** The per-patient-median
+   test above is statistically valid but throws away information (how many cells each patient
+   contributed, within-patient spread) by collapsing each patient to a single number. A better
+   alternative keeps the *original* pooled-cell test statistic (median(PSS cells) − median(SICCA
+   cells), using all 657 TLS-region cells) but calibrates its null distribution by permuting *patient*
+   labels, not cell labels — the correct unit of independence — rather than assuming a parametric
+   form. With only 13 patients (7 PSS / 6 SICCA), every possible split can be enumerated exactly:
+   C(13,7) = 1,716 relabelings, no random sampling or seed needed. Observed pooled median diff:
+   **+0.0122**. Across all 1,716 exact relabelings, 387 produced a diff at least that large —
+   **exact one-sided p = 0.2255**. This is more sensitive than the per-patient-median test (p=0.365
+   → p=0.226, confirming the extra cell-level granularity does recover some real signal) but still
+   well short of significance. Saved to `data/processed/step4_pss_sicca_permutation_test.csv`
+   (summary) and `step4_pss_sicca_permutation_null.csv` (the full null distribution).
+
+   **Current honest status of item 5: PSS vs. SICCA is NOT a confirmed finding, and this is close to
+   the statistical ceiling this dataset can support.** Three separate valid ways of testing it (naive
+   cell-level, patient-median, exact cluster permutation) all show the same trend (PSS higher) but
+   only the naive/invalid one reached significance — the two methods that correctly account for
+   patient non-independence (p=0.365 and p=0.226) don't. At n=7/6 patients there just isn't enough
+   independent biological replication to distinguish a real modest effect from chance; the fix is
+   more SICCA patients (a different, larger dataset), not a cleverer test on this same 13 patients.
+   This doesn't undermine items 1–4 — their effect sizes (p as low as 10⁻²¹²) are so large they would
+   very likely survive the same patient-level correction, but that hasn't been explicitly re-verified
+   either, and is worth doing before Step 7's write-up treats any Step 4 cell-level p-value as final.
+   Data: `data/processed/step4_pss_vs_sicca_patient_level.csv` (per-patient scores),
+   `step4_pss_vs_sicca_patient_level_test.csv` (patient-median test), `step4_pss_sicca_permutation_test.csv`
+   (cluster permutation test); the superseded cell-level bootstrap CI remains in
+   `step4_headline_metric.csv` for the record, now annotated as superseded.
 
 **Bottom line:** the MG-derived TLS signature transfers to real Sjögren's disease tissue — Sjögren's
 TLS-region cells look more like genuine lymphoid/TLS architecture (calibrated against a real healthy
