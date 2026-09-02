@@ -993,36 +993,55 @@ finding:**
    immune genes" concern): within Sjögren's, TLS-region cells score far higher than non-TLS-region
    cells of the same tissue — PSS median 0.130 vs. 0.028 (p≈7×10⁻²¹²), SICCA median 0.118 vs. 0.028
    (p≈5×10⁻¹⁹). The signature isn't just picking up generic immune-cell background.
-5. **PSS vs. SICCA, within TLS-region cells only:** PSS scores significantly higher than SICCA
-   (median 0.130 vs. 0.118, p=0.006) — the shared-architecture signal tracks with genuine autoimmune
-   Sjögren's pathology specifically, not with sicca symptoms generically.
+5. **PSS vs. SICCA, within TLS-region cells only — status downgraded 2026-09-02, see below.**
+   Cell-level test: PSS scores significantly higher than SICCA (median 0.130 vs. 0.118, p=0.006).
+   **This claim did not survive a more careful re-check and should be treated as unconfirmed, not
+   as a finding** — see the patient-level re-test immediately below, which is the actual current
+   read on this specific comparison.
 
-   **Bootstrap effect-size check on this one comparison, added 2026-09-02 — a real caveat, not just
-   confirmation.** The user asked whether class imbalance (570 PSS vs. 87 SICCA TLS-region cells)
-   should be fixed with SMOTE-style oversampling before trusting item 5. It shouldn't — Mann-Whitney
-   already handles unequal n correctly, and synthesizing fake SICCA cells would inflate apparent
-   power without adding real information (pseudo-replication). The honest way to check whether n=87
-   is a real limitation is `bootstrap_median_diff` (the same function used for item 2 and for Step
-   3's `medulla_FN1` case), applied here to PSS-vs-SICCA directly: **median diff +0.0122, 95% CI
-   [-0.0070, 0.0286]** — this CI straddles zero, unlike the PSS-vs-tonsil CI in item 2 ([0.0168,
-   0.0289], which excludes it cleanly. Per `bootstrap_median_diff`'s own documented logic (a CI that
-   excludes zero despite low n argues against pure underpowering; one that's comparably wide and
-   straddles zero argues *for* it): this is the "underpowered, not confidently zero" case. So item
-   5's Mann-Whitney significance (p=0.006, a test of stochastic dominance across the whole
-   distribution) and this CI (a test of the median-difference effect size specifically) are not
-   contradictory, but they tell a more careful story together than either alone — **the PSS>SICCA
-   direction is real and worth reporting, but treat its magnitude as not yet pinned down at n=87,
-   not as a settled effect size**, unlike items 1-4, which are decisively powered. Worth flagging
-   explicitly in the eventual Step 7 write-up/Limitations section, and revisiting if a later phase
-   adds more SICCA samples. Saved to `data/processed/step4_headline_metric.csv` (added as a second
-   row alongside item 2's bootstrap result).
+   **Investigation trail, added 2026-09-02 (kept in full — this is exactly the kind of thing that's
+   easy to lose track of if only the final answer is kept).** The user asked whether class imbalance
+   (570 PSS vs. 87 SICCA TLS-region *cells*) should be fixed with SMOTE-style oversampling before
+   trusting item 5's p=0.006. It shouldn't — Mann-Whitney already handles unequal n correctly, and
+   synthesizing fake SICCA cells would inflate apparent power without adding real information
+   (pseudo-replication). First check: `bootstrap_median_diff` (same function as item 2 and Step 3's
+   `medulla_FN1` case) on PSS-vs-SICCA cell scores gave **median diff +0.0122, 95% CI
+   [-0.0070, 0.0286]** — straddling zero, unlike item 2's CI, suggesting the *effect size* wasn't
+   pinned down even though the *direction* test was still significant.
+
+   That CI result prompted the real question: is 570-vs-87 even the right n for this test? No — those
+   are cells, not patients, and cells from the same patient aren't independent observations (the
+   classic scRNA-seq **pseudoreplication** problem: a cell-level test implicitly assumes 570+87
+   independent samples when there are really only 7+6 independent biological units, patients).
+   Re-ran the comparison at the correct unit of replication: one median TLS-region AUCell score per
+   patient (7 PSS patients: 0.111–0.154, tightly clustered; 6 SICCA patients: 0.036–0.149, much more
+   spread out and overlapping the PSS range), one-sided Mann-Whitney U (exact method, appropriate at
+   this n) — **U=24.0, p=0.365. Not significant.** The apparent cell-level significance (p=0.006) was
+   most likely inflated by treating within-patient replicate cells as independent evidence — exactly
+   the failure mode pseudoreplication predicts, now confirmed on this project's own real data rather
+   than left as a theoretical concern.
+
+   **Current honest status of item 5: PSS vs. SICCA is NOT a confirmed finding.** The direction (PSS
+   trending higher) is still visible in both the cell-level test and the raw patient medians, but at
+   n=7/6 patients there isn't enough power to distinguish it from chance. This doesn't undermine
+   items 1–4 — their effect sizes (p as low as 10⁻²¹²) are so large they would very likely survive
+   the same patient-level correction, but that hasn't been explicitly re-verified either, and is
+   worth doing before Step 7's write-up treats any Step 4 cell-level p-value as final. Data:
+   `data/processed/step4_pss_vs_sicca_patient_level.csv` (per-patient scores) and
+   `step4_pss_vs_sicca_patient_level_test.csv` (the test result); the superseded cell-level bootstrap
+   CI remains in `step4_headline_metric.csv` for the record, now annotated as superseded.
 
 **Bottom line:** the MG-derived TLS signature transfers to real Sjögren's disease tissue — Sjögren's
 TLS-region cells look more like genuine lymphoid/TLS architecture (calibrated against a real healthy
-tonsil reference) than like the rest of Sjögren's own tissue, the effect is specific to true PSS
-autoimmune pathology rather than SICCA's non-autoimmune symptoms, and it's robust across a wide range
-of threshold choices rather than resting on one hand-picked cutoff. This is Step 4's actual Phase 1
-deliverable — the cross-disease finding Steps 1–3 were built toward.
+tonsil reference) than like the rest of Sjögren's own tissue, and it's robust across a wide range of
+threshold choices rather than resting on one hand-picked cutoff. **Revised 2026-09-02:** the
+PSS-vs-SICCA specificity claim (item 5) does **not** hold at the patient level (p=0.365, n=7/6) and
+should not be reported as confirmed — the direction trends the expected way but isn't statistically
+distinguishable from chance at this sample size. Items 1–4 (the tonsil comparison, the headline
+proportion, the sensitivity sweep, and the within-Sjögren's specificity check) are unaffected by this
+correction and remain the actual finding; only the PSS/SICCA autoimmune-specificity refinement on top
+of them is now retracted pending more data or a proper patient-level/mixed-effects re-analysis. This
+is Step 4's actual Phase 1 deliverable — the cross-disease finding Steps 1–3 were built toward.
 
 ### Step 5 — Stromal extraction
 
