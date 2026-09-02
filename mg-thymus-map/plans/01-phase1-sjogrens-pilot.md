@@ -928,7 +928,7 @@ seed; a test that the output signature format matches what Step 4 expects (schem
 test that every gene in the output signature carries a provenance tag (literature-prior or
 MG-derived).
 
-### Step 4 — Cross-disease projection (AUCell)
+### Step 4 — Cross-disease projection (AUCell) — Status: ✅ Complete (2026-09-02)
 
 **Goal:** quantify how much of Sjögren's TLS architecture is "explained by" the MG signature.
 
@@ -945,6 +945,64 @@ MG-derived).
 **Tests to add later:** unit test of the AUCell wrapper against a tiny synthetic expression matrix
 with a known planted signal (score should come out high for cells with the signature "turned on");
 a test of the thresholding/statistics function against known distributions.
+
+**Implementation — done 2026-09-02.** Built `src/mg_thymus_map/scoring/cross_disease_projection.py`
+(`label_tls_region_cells`, `derive_shared_architecture_threshold`, `proportion_exceeding`,
+`threshold_sensitivity_sweep` — 8 new unit tests, 100% coverage, 115 total tests project-wide).
+Deliberately reuses `signature/spatial_validation.py`'s `score_signature_aucell` and
+`compare_niche_enrichment`/`bootstrap_median_diff` rather than duplicating them — those are generic
+per-cell gene-set-scoring and group-comparison utilities, not spatial-specific, and the plan already
+called for AUCell specifically in both places.
+
+**"TLS-region cells" definition, and a scoping decision worth remembering.** Sjögren's GSE272409 has
+no reprocessable spatial deposit (see Step 5's note on this same limitation), so unlike Step 3's
+spatial niches, "TLS-region" here means fine-grained cell-state calls: `is_gc_b_cell | is_tfh`
+(`signature/cell_states.py`, the same two states Step 3 operationalized for MG). FDC/HEV markers
+exist too (`markers.py`) and are in principle scoreable here since Sjögren's/tonsil are whole-tissue
+(unlike MG's CD45+-sorted data) — checked against the real data and found too sparse in the healthy
+tonsil reference to support a reference distribution (7 FDC / 1 HEV out of 38,072 tonsil cells, vs.
+1,186 GC B cells / 592 Tfh), so Step 4 is scoped to GC_B_cell/Tfh only, consistent with what Step 3
+already validated.
+
+**Data used — the real, already-processed data, not a fresh run.** `data/interim/sjogrens_with_cell_states.h5ad`
+(65,938 cells) and `data/interim/tonsil_with_cell_states.h5ad` (38,072 cells) already existed on disk
+from a prior session's Step 2/3 pass (gitignored, same convention as `mg_with_cell_states.h5ad`) —
+full QC, CellTypist annotation, and all ten fine-grained cell-state calls already present. All 25
+signature genes are present in both datasets' `var_names` (zero missing), so no `tmin` degradation to
+worry about. TLS-region counts: Sjögren's 657/65,938 (570 in the 7 PSS patients, 87 in the 6 SICCA
+comparator patients); tonsil 1,778/38,072.
+
+**Real result (from `data/processed/step4_cross_disease_results.csv`,
+`step4_threshold_sensitivity.csv`, `step4_headline_metric.csv`) — a genuinely positive, well-powered
+finding:**
+
+1. **Headline metric:** at a threshold set to the tonsil TLS-region cells' own median AUCell score
+   (0.1069 — the "shared architecture is normal here" bar, not an arbitrary constant), **69.1%
+   (394/570) of Sjögren's (PSS) TLS-region cells exceed it**, vs. tonsil's own ~50% self-rate at that
+   same threshold by construction. Bootstrap 95% CI on the median difference (PSS TLS − tonsil TLS):
+   **+0.0231 [0.0168, 0.0289]** — excludes zero, a real effect, not underpowered noise.
+2. **Threshold-sensitivity sweep** (closing the risk-table item on arbitrary thresholds): PSS
+   TLS-region cells clear the tonsil-derived bar at 95.1% (10th percentile) down to 26.7% (90th
+   percentile) — always well above the reference's own self-rate at each percentile (89.9% → 10.0%).
+   The finding holds across the whole threshold range, not just at one cherry-picked cutoff.
+3. **Sjögren's PSS TLS-region vs. tonsil TLS-region, direct test:** one-sided Mann-Whitney,
+   median 0.130 vs. 0.107, **p = 7.5×10⁻²⁶** (BH-adjusted 1.5×10⁻²⁵). SICCA TLS-region trends the
+   same direction (median 0.118) but doesn't clear significance at n=87 (p=0.086) — consistent with
+   SICCA being a symptomatic-but-non-autoimmune comparator, not a null population.
+4. **Specificity check** (directly answers the risk-table's "circular / trivially matches generic
+   immune genes" concern): within Sjögren's, TLS-region cells score far higher than non-TLS-region
+   cells of the same tissue — PSS median 0.130 vs. 0.028 (p≈7×10⁻²¹²), SICCA median 0.118 vs. 0.028
+   (p≈5×10⁻¹⁹). The signature isn't just picking up generic immune-cell background.
+5. **PSS vs. SICCA, within TLS-region cells only:** PSS scores significantly higher than SICCA
+   (median 0.130 vs. 0.118, p=0.006) — the shared-architecture signal tracks with genuine autoimmune
+   Sjögren's pathology specifically, not with sicca symptoms generically.
+
+**Bottom line:** the MG-derived TLS signature transfers to real Sjögren's disease tissue — Sjögren's
+TLS-region cells look more like genuine lymphoid/TLS architecture (calibrated against a real healthy
+tonsil reference) than like the rest of Sjögren's own tissue, the effect is specific to true PSS
+autoimmune pathology rather than SICCA's non-autoimmune symptoms, and it's robust across a wide range
+of threshold choices rather than resting on one hand-picked cutoff. This is Step 4's actual Phase 1
+deliverable — the cross-disease finding Steps 1–3 were built toward.
 
 ### Step 5 — Stromal extraction
 
@@ -1118,12 +1176,16 @@ isn't standardized across studies.
       marker panels, cell-state calling, cell–cell communication analysis, the signature-merge/output
       artifact (real 25-gene signature), and spatial validation (`spatial_validation.py`, real
       AUCell-vs-niche enrichment result) all complete — 2026-09-01.**
-- [ ] `src/mg_thymus_map/scoring/` — AUCell projection + statistics. **Not started (Step 4).**
+- [x] `src/mg_thymus_map/scoring/` — AUCell projection + statistics. **Done (Step 4): real,
+      well-powered cross-disease result — Sjögren's TLS-region cells score significantly higher on
+      the MG signature than tonsil TLS-region cells, with real specificity and a PSS>SICCA gradient
+      — 2026-09-02.**
 - [ ] `src/mg_thymus_map/stromal/` — subtraction / stromal extraction. **Not started (Step 5).**
 - [ ] `src/mg_thymus_map/pharma/` — DGIdb/ChEMBL clients + ranking. **Not started (Step 6).**
 - [x] `tests/unit/`, `tests/integration/`, `tests/fixtures/` covering all of the above. **Done for
-      Steps 1–3** (103 tests total, `make test` green, 100% coverage on covered modules including
-      `mg_spatial.py` and `spatial_validation.py`); Steps 4–7 have none yet.
+      Steps 1–4** (115 tests total, `make test` green, 100% coverage on covered modules including
+      `mg_spatial.py`, `spatial_validation.py`, and `cross_disease_projection.py`); Steps 5–7 have
+      none yet.
 - [x] `README.md` — updated with Phase 1 setup/run instructions. **Done in Phase 0**; needs a
       revisit once `pipeline.py` actually orchestrates Step 3+ (currently config-loading only).
 - [x] `Makefile` — `make setup`, `make test`, `make phase1`. **Done in Phase 0.**
