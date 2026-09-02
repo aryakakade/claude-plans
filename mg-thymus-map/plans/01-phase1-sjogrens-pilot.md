@@ -1065,6 +1065,36 @@ finding:**
    (cluster permutation test); the superseded cell-level bootstrap CI remains in
    `step4_headline_metric.csv` for the record, now annotated as superseded.
 
+**Full pseudoreplication audit, added 2026-09-02 — every remaining Step 4 claim checked at the
+patient level, not just the one that broke.** After item 5's retraction, the user asked to confirm
+no other item had the same hidden flaw, rather than assuming items 1–4 were fine because their
+p-values looked extreme. Checked each:
+
+- **Item 1/2 (headline 69.1% proportion):** not a p-value, but checked whether it was driven by a
+  few cell-heavy patients rather than being a real per-patient pattern. It isn't — **7/7 PSS
+  patients individually clear >50%** (range 52.4%–90.0%), and the pooled cell-weighted proportion
+  (69.1%) matches the unweighted per-patient average (68.8%) almost exactly. Genuinely patient-wide,
+  not skewed by whichever patient contributed the most cells. `data/processed/step4_specificity_patient_level.csv`
+  companion diagnostic not needed here — see the per-patient table in this session's transcript;
+  reproducible via `label_tls_region_cells` + `proportion_exceeding` grouped by `sample_id`.
+- **Item 3 core (PSS vs. tonsil):** re-verified above — p=0.00303, the mathematical minimum
+  possible at n=7/4.
+- **Item 3's SICCA-vs-tonsil sub-part:** re-checked at the patient level too (6 SICCA patients vs.
+  4 tonsil donors) — stays non-significant (patient-level MWU p=0.238, exact cluster permutation
+  p=0.129), consistent with the already-honest "trends the same direction, doesn't clear
+  significance" framing. No correction needed — this one was never overclaimed.
+- **Item 4 (specificity, TLS-region vs. non-TLS-region):** re-tested as a **paired** per-patient
+  comparison (each of the 13 patients' own TLS-region median vs. their own non-TLS-region median) —
+  **13/13 patients individually show TLS-region scoring higher**, and the paired one-sided Wilcoxon
+  signed-rank test gives **p=0.000122, the exact theoretical minimum possible at n=13** (2⁻¹³, since
+  every single patient landed on the same side). Saved to
+  `data/processed/step4_specificity_patient_level.csv`.
+
+**Conclusion of the audit: items 1–4 all hold up at the correct unit of replication, several at the
+mathematical maximum significance achievable given the patient counts. Only item 5 was a genuine
+artifact.** Step 4 is now on solid footing across the board, not just "probably fine because the
+p-values looked big."
+
 **Bottom line:** the MG-derived TLS signature transfers to real Sjögren's disease tissue — Sjögren's
 TLS-region cells look more like genuine lymphoid/TLS architecture (calibrated against a real healthy
 tonsil reference) than like the rest of Sjögren's own tissue, and it's robust across a wide range of
