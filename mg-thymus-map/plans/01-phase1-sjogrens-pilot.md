@@ -1267,6 +1267,141 @@ the patient level; the remainder of the 13,572-gene ranked list should be treate
 candidate list requiring the same patient-level check before being cited as confirmed, not assumed
 solid by extension.
 
+**Full numbers appendix, added 2026-09-03 (every number this session actually produced, not just the
+headline) — regenerable via the module's functions against `data/interim/sjogrens_stromal_scored.h5ad`,
+kept here so nothing lives only in a terminal transcript.**
+
+*Cell-level ranking, top 20 genes up in PSS (post-regression, technical artifacts already excluded;
+`scores`/`pvals_adj` from `sc.tl.rank_genes_groups`, Wilcoxon; `logfoldchanges` came back `NaN` for
+this run — a known scanpy quirk when a gene's mean in one group rounds to ~0 pre-log, harmless since
+ranking here uses `scores`/`pvals_adj`, not fold-change):
+
+| gene | score | pvals_adj | patient-level spot-checked? |
+|---|---:|---:|---|
+| PIP | 60.02 | 0 | ✅ p=0.0070 |
+| LYZ | 52.13 | 0 | ✅ p=0.0175 |
+| RP11-1143G9.4 | 49.71 | 0 | no |
+| IFI6 | 49.54 | 0 | ✅ p=0.0111 |
+| C6orf58 | 41.88 | 0 | no |
+| PIGR | 37.32 | 3.61×10⁻³⁰² | no |
+| SMR3B | 36.17 | 6.93×10⁻²⁸⁴ | no |
+| MUC7 | 32.72 | 1.82×10⁻²³² | ✅ p=0.0688 (weaker, doesn't clear 0.05) |
+| B2M | 30.37 | 3.11×10⁻²⁰⁰ | no |
+| IFI44L | 29.26 | 6.85×10⁻¹⁸⁶ | ✅ p=0.0111 |
+| ANKRD36C | 28.74 | 2.65×10⁻¹⁷⁹ | no |
+| EHF | 28.60 | 1.43×10⁻¹⁷⁷ | no |
+| CD24 | 27.18 | 1.88×10⁻¹⁶⁰ | no |
+| FAM3D | 26.78 | 1.04×10⁻¹⁵⁵ | no |
+| AZGP1 | 25.80 | 1.58×10⁻¹⁴⁴ | ✅ p=0.0175 |
+| PLIN5 | 25.59 | 2.80×10⁻¹⁴² | no |
+| FXYD3 | 25.36 | 1.03×10⁻¹³⁹ | no |
+| OGFRL1 | 25.19 | 8.15×10⁻¹³⁸ | no |
+| XAF1 | 25.18 | 9.94×10⁻¹³⁸ | ✅ p=0.0111 |
+| ELF5 | 24.84 | 4.51×10⁻¹³⁴ | no |
+
+Top 20 genes up in SICCA (post-regression, technical artifacts excluded) — **none of these were
+patient-level spot-checked**, so treat this list as cell-level candidates only, not confirmed
+findings; included for completeness since it's a real output of this run. They read as broadly
+generic housekeeping/cytoskeletal/stress genes (S100 proteins, GAPDH, ferritin, actin/cytoskeleton),
+not an obviously coherent disease-specific program the way the PSS-up list is — worth being
+skeptical of this direction rather than building a story around it:
+
+| gene | score | pvals_adj |
+|---|---:|---:|
+| S100A6 | -47.91 | 0 |
+| S100A10 | -43.23 | 0 |
+| GAPDH | -43.05 | 0 |
+| FTH1 | -42.94 | 0 |
+| FAU | -40.54 | 0 |
+| CD99 | -40.37 | 0 |
+| LGALS3 | -40.13 | 0 |
+| CST3 | -37.45 | 2.67×10⁻³⁰⁴ |
+| GSTP1 | -36.53 | 1.24×10⁻²⁸⁹ |
+| VIM | -35.79 | 4.34×10⁻²⁷⁸ |
+| CD81 | -33.80 | 6.35×10⁻²⁴⁸ |
+| NACA | -33.15 | 1.72×10⁻²³⁸ |
+| MGP | -32.65 | 1.81×10⁻²³¹ |
+| ANXA1 | -29.74 | 5.42×10⁻¹⁹² |
+| SRP14 | -29.54 | 2.21×10⁻¹⁸⁹ |
+| IFITM2 | -28.63 | 5.80×10⁻¹⁷⁸ |
+| EEF1D | -28.23 | 4.64×10⁻¹⁷³ |
+| ACTB | -26.91 | 3.06×10⁻¹⁵⁷ |
+| PFN1 | -26.72 | 5.18×10⁻¹⁵⁵ |
+| CAV1 | -26.67 | 2.07×10⁻¹⁵⁴ |
+
+*Complete ground-truth recovery table* — all 22 Nayar et al. genes, cell-level (`rank` is position in
+the full 13,572-gene list sorted by `pvals_adj`; negative `score` = higher in SICCA, positive = higher
+in PSS, matching the `group=sjogrens_syndrome, reference=non_sjogrens_sicca` orientation used
+throughout):
+
+| state | gene | rank | score | pvals_adj | patient-level (of the 6 spot-checked) |
+|---|---|---:|---:|---:|---|
+| immunofibroblast | IFNGR1 | 633 | -14.67 | 1.87×10⁻⁴⁷ | not spot-checked |
+| pericyte_mural | RGS5 | 2227 | -11.58 | 2.98×10⁻³⁰ | ❌ p=0.6346, direction unchanged (up in SICCA) |
+| pericyte_mural | CCL8 | 2352 | -11.49 | 8.27×10⁻³⁰ | ❌ p=0.6346, **direction flipped** (up in PSS at patient level) |
+| pericyte_mural | ACTA2 | 5730 | -10.01 | 3.09×10⁻²³ | ❌ p=0.5274, direction unchanged (up in SICCA) |
+| pericyte_mural | CCL2 | 5743 | -10.01 | 3.21×10⁻²³ | not spot-checked |
+| pericyte_mural | MCAM | 7367 | -9.40 | 1.01×10⁻²⁰ | ❌ p=0.5822, direction unchanged (up in SICCA) |
+| pericyte_mural | CCL21 | 7641 | -9.28 | 3.05×10⁻²⁰ | ❌ p=0.3141, **direction flipped** (up in PSS at patient level) |
+| immunofibroblast | CD34 | 6941 | -9.59 | 1.71×10⁻²¹ | not spot-checked |
+| immunofibroblast | TNFRSF1A | 8886 | -8.65 | 8.19×10⁻¹⁸ | not spot-checked |
+| immunofibroblast | ICAM1 | 9415 | -8.29 | 1.58×10⁻¹⁶ | not spot-checked |
+| immunofibroblast | SOCS1 | 10329 | -7.55 | 5.79×10⁻¹⁴ | not spot-checked |
+| immunofibroblast | CXCL9 | 11157 | -6.67 | 3.06×10⁻¹¹ | not spot-checked |
+| pericyte_mural | TNC | 11374 | -6.35 | 2.53×10⁻¹⁰ | not spot-checked |
+| immunofibroblast | IFNGR2 | 11812 | -5.71 | 1.29×10⁻⁸ | not spot-checked |
+| immunofibroblast / pericyte_mural | CCL19 | 11909 | -5.53 | 3.74×10⁻⁸ | not spot-checked (this is the shared-signature seed gene itself) |
+| immunofibroblast | IRF1 | 11926 | +5.48 | 4.80×10⁻⁸ | not spot-checked |
+| immunofibroblast | RELB | 12131 | -5.06 | 4.57×10⁻⁷ | not spot-checked |
+| immunofibroblast | TNFSF13B | 12748 | -3.46 | 5.69×10⁻⁴ | not spot-checked (also a shared-signature seed gene) |
+| immunofibroblast | NFKB2 | 12989 | -2.62 | 9.21×10⁻³ | not spot-checked |
+| immunofibroblast / pericyte_mural | VCAM1 | 13415 | -0.77 | 0.445 | ❌ p=0.2669, **direction flipped** (up in PSS at patient level); the gene [[mg-thymus-map-step5-stromal-extraction]] flagged as worth prioritizing — did not pan out |
+| immunofibroblast | CD82 | 13506 | +0.32 | 0.753 | not spot-checked |
+
+*All 6 ground-truth genes that were spot-checked at the patient level* (7 PSS patients / 6 SICCA
+patients, one mean expression value per patient, exact/near-exact one-sided Mann-Whitney in the
+cell-level-favored direction):
+
+| gene | PSS patient-mean median | SICCA patient-mean median | direction at patient level | patient MWU p |
+|---|---:|---:|---|---:|
+| RGS5 | 0.1666 | 0.1771 | up in SICCA (unchanged) | 0.6346 |
+| CCL8 | 0.0451 | 0.0433 | up in PSS (flipped) | 0.6346 |
+| ACTA2 | 0.4540 | 0.4755 | up in SICCA (unchanged) | 0.5274 |
+| MCAM | 0.2552 | 0.2613 | up in SICCA (unchanged) | 0.5822 |
+| CCL21 | 0.0784 | 0.0605 | up in PSS (flipped) | 0.3141 |
+| VCAM1 | 0.2776 | 0.2523 | up in PSS (flipped) | 0.2669 |
+
+*All 7 candidate genes spot-checked from the PSS-up list* (same design as above):
+
+| gene | PSS patient-mean median | SICCA patient-mean median | patient MWU p (one-sided, up-in-PSS) |
+|---|---:|---:|---:|
+| PIP | 3.5510 | 2.1211 | 0.0070 |
+| LYZ | 3.5933 | 2.1210 | 0.0175 |
+| IFI6 | 0.4763 | 0.2396 | 0.0111 |
+| IFI44L | 0.2489 | 0.1630 | 0.0111 |
+| XAF1 | 0.2164 | 0.1598 | 0.0111 |
+| AZGP1 | 1.4167 | 0.8887 | 0.0175 |
+| MUC7 | 3.3553 | 2.8731 | 0.0688 |
+
+*Donor sex composition check* (inferred from XIST vs. mean of 5 Y-linked genes — RPS4Y1, DDX3Y, UTY,
+KDM5D, EIF1AY — per patient, since no donor demographics were loaded for GSE272409 the way the
+tonsil loader captures them): **PSS 6F/1M** (GSM8401512_PSS_B is the one male), **SICCA 4F/2M**
+(GSM8401521_SICCA_F and GSM8401522_SICCA_G). Both groups are female-predominant, matching real
+Sjögren's/sicca epidemiology, so this isn't the same severity of confound as the earlier all-male
+tonsil bug — but the imbalance is why `XIST` and the 5 Y-linked genes were excluded from the
+candidate list rather than left in.
+
+*Technical-artifact exclusion tally:* 128 of 13,700 genes excluded before ranking — mitochondrial
+(`MT-*`), ribosomal (`RPL*`/`RPS*`), immunoglobulin (`IGK*`/`IGH*`/`IGL*`/`JCHAIN`), and the 6
+sex-linked genes above.
+
+*Files:* `data/processed/step5_stromal_markers_naive.csv` (no regression), `_corrected.csv`
+(post-regression, all 13,700 genes, artifacts still included), `_clean.csv` (artifacts excluded,
+13,572 genes — source for both tables above), `step5_ground_truth_recovery.csv` (the 22-gene table
+above), `step5_candidate_patient_level_check.csv` (the two patient-level spot-check tables above);
+scored interim data at `data/interim/sjogrens_stromal_scored.h5ad`. All gitignored, regenerable via
+`src/mg_thymus_map/stromal/extraction.py`'s functions.
+
 ### Step 6 — Pharmacogenomic mapping
 
 **Goal:** turn the stromal marker gene list into candidate druggable targets.
