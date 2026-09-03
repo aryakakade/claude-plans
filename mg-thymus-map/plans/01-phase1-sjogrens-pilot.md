@@ -1402,7 +1402,7 @@ above), `step5_candidate_patient_level_check.csv` (the two patient-level spot-ch
 scored interim data at `data/interim/sjogrens_stromal_scored.h5ad`. All gitignored, regenerable via
 `src/mg_thymus_map/stromal/extraction.py`'s functions.
 
-### Step 6 — Pharmacogenomic mapping
+### Step 6 — Pharmacogenomic mapping — Status: ✅ Complete (2026-09-03), built on a PROVISIONAL Step 5 gene list
 
 **Goal:** turn the stromal marker gene list into candidate druggable targets.
 
@@ -1414,6 +1414,87 @@ scored interim data at `data/interim/sjogrens_stromal_scored.h5ad`. All gitignor
 
 **Tests to add later:** client tests against recorded API-response fixtures (no live network calls
 in CI); a test that the ranking/dedup logic behaves correctly on synthetic overlapping results.
+
+**⚠️ Standing caveat, added 2026-09-03: the user has not yet reviewed Step 5 and may request
+changes to it.** Everything below is built on Step 5's current gene list (PIP, LYZ, IFI6, IFI44L,
+XAF1, AZGP1). The code is deliberately gene-list-agnostic — `pharma`'s functions take any gene list
+as a plain argument, nothing about Step 5's specific genes is hardcoded into the client/ranking
+code — so if Step 5's candidate list changes after review, only the Step 6 *results* (this section's
+tables, and the two `data/processed/step6_*.csv` runs) need to be regenerated, not the code. Don't
+treat this section's specific drug list as final until Step 5 is confirmed stable.
+
+**Implementation — done 2026-09-03.** Built `src/mg_thymus_map/pharma/` (`dgidb.py`, `chembl.py`,
+`ranking.py`). Each client splits a thin IO wrapper from a pure parser (`parse_dgidb_response`,
+`parse_chembl_target_response`, `parse_chembl_mechanism_response`, `parse_chembl_molecule_response`)
+so parsing is unit-tested against recorded real fixtures (`tests/fixtures/dgidb_response_vcam1.json`,
+`chembl_target_response_itga4.json`, `chembl_mechanism_response_chembl278.json`,
+`chembl_molecule_response_chembl4297363.json` — captured from real, verified API calls, not
+fabricated) with no live network call in CI, per the plan's own test-plan wording.
+`combine_and_rank` merges on (gene, drug) case-insensitively and ranks by n_sources → max_phase →
+DGIdb interaction_score — this project's own reasoned ranking choice (documented as such in the
+module docstring, not presented as a field-standard formula), tested against synthetic overlapping
+results including the exact ordering behavior. 17 new tests, 100% coverage, 136 tests project-wide.
+
+**Real result 1: the direct Step 5 gene list came back almost empty — expected, and informative,
+not a failure.** ChEMBL had zero drug mechanisms for all six genes (PIP, LYZ, IFI6, IFI44L, XAF1,
+AZGP1). DGIdb returned two hits, both for PIP only (TAMOXIFEN CITRATE, "THERAPEUTIC HORMONE") —
+checked directly against DGIdb's raw response and confirmed PIP correctly resolves to "prolactin
+induced protein" (hgnc:8993, no gene-symbol collision), but **both hits come from a single
+low-quality source (NCI Thesaurus)**, and "THERAPEUTIC HORMONE" (ncit:C548) is a generic NCI
+category, not a specific compound — flagged as non-actionable rather than reported as a real lead.
+This makes biological sense: interferon-stimulated genes (IFI6/IFI44L/XAF1) are downstream
+transcriptional *effectors* of interferon signaling, not the signaling proteins themselves, so they
+aren't the kind of target that shows up in drug-target databases — the actual druggable nodes sit
+upstream, in the pathway that *produces* the ISG signature.
+
+**Real result 2: querying the upstream type-I interferon pathway instead — a well-motivated
+extension, not literally what the plan's gene list said, but the natural next question given Step
+5's actual finding.** Queried IFNAR1, IFNAR2, JAK1, JAK2, TYK2, STAT1, STAT2 (the canonical type-I
+IFN receptor/signaling cascade) against both databases. Filtered to the therapeutically relevant
+direction only: **INHIBITOR/ANTAGONIST/NEGATIVE ALLOSTERIC MODULATOR** action types (69 of 91
+ChEMBL mechanisms, 350 of 371 DGIdb rows survive this filter) — a disease driven by *excess*
+interferon signaling needs pathway *blockers*, not the many interferon-formulation *agonists* also
+in the results (real drugs, but for entirely different indications like MS/hepatitis — the opposite
+therapeutic direction, and would have been a real error to leave in undifferentiated).
+
+**Top result, found in both databases (n_sources=2), highest-ranked overall:**
+
+| gene | drug | action_type | max_phase | sources |
+|---|---|---|---:|---|
+| IFNAR1 | **ANIFROLUMAB** | ANTAGONIST | 4 (approved) | ChEMBL, DGIdb |
+
+Anifrolumab is a real, FDA-approved anti-IFNAR1 antibody (approved for SLE, 2021) — an
+interferon-driven autoimmune disease mechanistically analogous to what Step 5 found in Sjögren's
+salivary gland tissue. This is a genuinely notable result: an independent, bottom-up scRNA-seq
+pipeline (QC → annotation → TLS signature → cross-disease projection → stromal regression →
+differential expression → pathway reasoning → drug lookup) converged on a drug that real Sjögren's
+clinical research has also investigated for the same mechanistic reason, without that connection
+being told to the pipeline anywhere.
+
+**Also found: 12 distinct approved (max_phase=4) JAK-family inhibitors, each confirmed in both
+databases**, hitting JAK1/JAK2/TYK2 (the kinases immediately downstream of IFNAR1/2 in the same
+signaling cascade) — DEUCRAVACITINIB, FEDRATINIB, PEFICITINIB, PACRITINIB, FILGOTINIB, RUXOLITINIB,
+ABROCITINIB, BARICITINIB, MOMELOTINIB, TOFACITINIB, UPADACITINIB, DEURUXOLITINIB. Several of these
+(baricitinib, tofacitinib in particular) have real Sjögren's/lupus-adjacent trial literature. Many
+rows in the raw CSV are salt/hydrate variants of the same active ingredient (e.g. "TOFACITINIB" vs.
+"TOFACITINIB CITRATE") — a real ChEMBL data quirk, not deduplicated programmatically (would need a
+drug-name-normalization step out of scope here), noted explicitly rather than silently inflating the
+apparent candidate count. A drug hitting multiple JAK genes (e.g. tofacitinib against JAK1, JAK2,
+*and* TYK2) reflects genuine pan-JAK pharmacology, not duplicate noise.
+
+**Files:** `data/processed/step6_dgidb_raw.csv` / `step6_chembl_raw.csv` (direct Step 5 gene list,
+raw); `step6_dgidb_ifn_pathway_raw.csv` / `step6_chembl_ifn_pathway_raw.csv` (IFN pathway genes,
+raw, before the inhibitor/antagonist filter); `step6_ranked_direct_genes.csv` /
+`step6_ranked_ifn_pathway.csv` (final `combine_and_rank` output for each gene set). All gitignored,
+regenerable via `src/mg_thymus_map/pharma`'s functions.
+
+**Bottom line:** the literal Step 5 gene list produced no actionable drug candidates (expected,
+given what those genes actually are biologically) — but reasoning one level upstream, to the
+pathway that produces the signature Step 5 found, surfaced a real, mechanistically coherent,
+already-approved drug candidate (anifrolumab) plus a class of approved drugs (JAK inhibitors) with
+independent real-world relevance to this exact disease. **This entire result is downstream of
+Step 5's specific gene list and should be re-run if that list changes** — the pipeline itself
+doesn't need to change, just its input.
 
 ### Step 7 — Validation & reporting
 
@@ -1522,12 +1603,18 @@ isn't standardized across studies.
       Nayar et al. ground-truth marker panel did not hold up at the patient level (likely a stromal-
       subtyping resolution limit, not necessarily a miss), but a real, literature-corroborated
       interferon-stimulated-gene signature (IFI6/IFI44L/XAF1 + glandular genes PIP/LYZ/AZGP1)
-      specific to true Sjögren's stromal tissue was found and confirmed patient-level — 2026-09-02.**
-- [ ] `src/mg_thymus_map/pharma/` — DGIdb/ChEMBL clients + ranking. **Not started (Step 6).**
+      specific to true Sjögren's stromal tissue was found and confirmed patient-level — 2026-09-02.
+      ⚠️ NOT YET REVIEWED by the user as of 2026-09-03 — may still change; Step 6 is built on this
+      list but is gene-list-agnostic, so a change here only requires re-running Step 6, not rewriting it.**
+- [x] `src/mg_thymus_map/pharma/` — DGIdb/ChEMBL clients + ranking. **Done (Step 6): the literal
+      Step 5 gene list had no real drug hits (expected — ISGs are downstream effectors, not drug
+      targets themselves); reasoning one level upstream to the type-I interferon pathway surfaced
+      anifrolumab (FDA-approved anti-IFNAR1 antibody, found in both DGIdb and ChEMBL) plus 12
+      approved JAK inhibitors — 2026-09-03. Depends on Step 5's gene list; re-run if it changes.**
 - [x] `tests/unit/`, `tests/integration/`, `tests/fixtures/` covering all of the above. **Done for
-      Steps 1–5** (119 tests total, `make test` green, 100% coverage on covered modules including
-      `mg_spatial.py`, `spatial_validation.py`, `cross_disease_projection.py`, and
-      `stromal/extraction.py`); Steps 6–7 have none yet.
+      Steps 1–6** (136 tests total, `make test` green, 100% coverage on covered modules including
+      `mg_spatial.py`, `spatial_validation.py`, `cross_disease_projection.py`, `stromal/extraction.py`,
+      and `pharma/`); Step 7 has none yet.
 - [x] `README.md` — updated with Phase 1 setup/run instructions. **Done in Phase 0**; needs a
       revisit once `pipeline.py` actually orchestrates Step 3+ (currently config-loading only).
 - [x] `Makefile` — `make setup`, `make test`, `make phase1`. **Done in Phase 0.**
