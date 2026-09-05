@@ -1114,7 +1114,7 @@ independently confirmed at the correct unit of replication, not resting on a cel
 might hide the same pseudoreplication problem that sank item 5. This
 is Step 4's actual Phase 1 deliverable — the cross-disease finding Steps 1–3 were built toward.
 
-### Step 5 — Stromal extraction — Status: ✅ Complete (2026-09-02)
+### Step 5 — Stromal extraction — Status: ✅ Complete (2026-09-02); citation review + follow-up gaps closed 2026-09-05
 
 **Goal:** isolate the non-immune, Sjögren's-specific damage signal left over after removing the
 shared immune architecture.
@@ -1138,10 +1138,16 @@ published mechanistic driver of thymic MG autoimmunity.
 - Output: a ranked list of stromal marker genes specific to Sjögren's tissue damage, distinct from
   the general shared TLS program.
 - **Ground-truth check (added per question 5/6's resolution):** compare the derived stromal
-  marker list against the fibroblast and pericyte/mural cell findings from [Molecular and spatial
-  analysis of tertiary lymphoid structures in Sjogren's syndrome (Nature Communications, Jan
-  2025)](https://www.nature.com/articles/s41467-024-54686-0) — the closest thing to matched
-  ground truth this pilot has access to. **Correction (verified against the paper's actual Data
+  marker list against the fibroblast and pericyte/mural cell findings from Nayar S, Turner JD,
+  Asam S, Fennell E, Pugh M, Colafrancesco S, Berardicurti O, Smith CG, Flint J, Teodosio A,
+  Iannizzotto V, Gardner DH, van Roon J, Korsunsky I, Howdle D, Frei AP, Lassen KG, Bowman SJ,
+  Ng W-F, Croft AP, Filer A, Fisher BA, Buckley CD, Barone F. "[Molecular and spatial analysis of
+  tertiary lymphoid structures in Sjogren's syndrome](https://www.nature.com/articles/s41467-024-54686-0),"
+  *Nature Communications* 16:5 (2025), DOI: 10.1038/s41467-024-54686-0, PMID: 39747819 (full
+  citation repeated here, not just cross-referenced from `signature/seed.py`, per the 2026-09-05
+  citation review — an ISEF write-up should cite the paper directly in the section that uses it) —
+  the closest thing to matched ground truth this pilot has access to. **Correction (verified against
+  the paper's actual Data
   Availability statement):** the paper's scRNA-seq is GEO **GSE272409** (confirmed
   scRNA-seq-only; a separate **GSE272410** holds unrelated bulk RNA-seq data). Its spatial
   component is **Nanostring GeoMx spatial proteomics + multiplex immunofluorescence
@@ -1156,10 +1162,13 @@ published mechanistic driver of thymic MG autoimmunity.
   - **Immunofibroblast state** (CCL19⁺/TNFSF13B⁺ fibroblasts): `CD34, CCL19, TNFSF13B,
     ICAM1, VCAM1, CD82, CXCL9` (+ `RELB, NFKB2` for non-canonical NFκB signaling;
     `IFNGR1, IFNGR2, TNFRSF1A, IRF1, SOCS1`).
-  - **Pericyte/mural cell state** (the paper's headline "undescribed" finding): core
-    `RGS5, ACTA2, MCAM`; defining `CCL21, CCL19, TNC`; plus `CCL8, VCAM1, CCL2` — notably
-    *lacking* `TNFSF13B, CD82, PDGFRA`, which is what distinguishes it from the immunofibroblast
-    state above.
+  - **Pericyte/mural cell state** (the paper's least-previously-characterized stromal finding —
+    **correction, 2026-09-05:** earlier notes here scare-quoted this as the paper's own word
+    "undescribed"; the full text was checked and that word never appears — the paper's actual
+    language is milder, describing this state's "potential immunological functions"; don't
+    re-introduce "undescribed" as a quotation of the paper): core `RGS5, ACTA2, MCAM`; defining
+    `CCL21, CCL19, TNC`; plus `CCL8, VCAM1, CCL2` — notably *lacking* `TNFSF13B, CD82, PDGFRA`,
+    which is what distinguishes it from the immunofibroblast state above.
   Same logic as the BAFF/CXCL13 positive control in Step 7: check whether our own
   independently-derived stromal marker list recovers these genes (or close pathway relatives).
   **Cross-disease corroboration worth remembering here (found 2026-08-28, during Step 3's
@@ -1246,8 +1255,14 @@ finding out later they don't hold up.
   p=0.0111, IFI44L p=0.0111, XAF1 p=0.0111** (MUC7 weaker, p=0.0688) — real separation at this
   sample size, not the theoretical floor (which would be ≈0.00058 at n=7/6), so not a maximal/
   artifactual result either. **This is independently corroborated by established Sjögren's
-  literature**: a type-I interferon signature in salivary gland glandular epithelium is one of the
-  most consistently replicated findings in real Sjögren's syndrome research — this project's own
+  literature** (citations added 2026-09-05, verified against the actual sources rather than left as
+  an unsourced narrative claim): a type-I interferon signature in Sjögren's salivary gland tissue is
+  one of the most consistently replicated findings in the field — see the review [Type I and type II
+  interferon signatures in Sjögren's syndrome pathogenesis](https://pmc.ncbi.nlm.nih.gov/articles/PMC4564326/)
+  (PMC4564326); IFI44/IFI44L specifically is covered in "Identification and Validation of IFI44 as a
+  Novel Biomarker for Primary Sjögren's Syndrome," *Journal of Inflammation Research* 2024, PMID
+  39219820; and XAF1 has been separately reported as a
+  Sjögren's hub-gene biomarker in the same interferon-response literature. This project's own
   independently-derived candidate list reproducing that signature, without having been told to look
   for it, is a genuine positive validation, structurally the same kind of check as Step 3's
   literature cross-check on CXCL13/CCL19/CXCL10. Full ranked list: 13,572 genes in
@@ -1255,15 +1270,71 @@ finding out later they don't hold up.
   `step5_candidate_patient_level_check.csv`; ground-truth recovery table in
   `step5_ground_truth_recovery.csv`.
 
+**Correction, added 2026-09-05 — the patient-level spot-checks above were never multiple-testing
+corrected, and the code that ran them was never committed (it lived only in a terminal
+transcript).** Both gaps are now closed: `src/mg_thymus_map/stromal/patient_level.py`
+(`per_patient_means`, `patient_level_test_batch`) is a real, tested module (5 unit tests, 100%
+coverage) that reruns exactly this check and applies Benjamini-Hochberg across whatever gene batch
+is passed to it — re-running it against `data/interim/sjogrens_stromal_scored.h5ad` reproduces the
+raw p-values above exactly (as a two-sided test, so 2× the one-sided values quoted above, e.g. PIP
+0.0070 → 0.013986) and adds `p_value_bh`. **The correct interpretation depends on which family the
+7 candidate genes are corrected within, and that choice matters here, not just as a formality:**
+corrected together with the 6 null ground-truth genes (13 tests, a family that answers two
+different questions at once — "did the literature panel replicate" and "do our own top DE hits
+hold up"), nothing clears p_bh<0.05 (best: PIP/IFI6/IFI44L/XAF1 at p_bh=0.072). Corrected only
+within the 7-gene candidate family it was actually drawn from (the more defensible choice, since
+the ground-truth family already came back uniformly null regardless of correction and answers a
+separate question), **PIP, LYZ, IFI6, IFI44L, XAF1, and AZGP1 all survive at p_bh≈0.039–0.041; only
+MUC7 does not (p_bh=0.138).** Both correction tables are saved
+(`step5_patient_level_bh_corrected.csv` for the pooled 13-test version,
+`step5_candidate_patient_level_bh.csv` / `step5_ground_truth_patient_level_bh.csv` for the
+per-family version) — cite the per-family numbers as the primary result, but don't drop the pooled
+version if a reviewer asks about correction scope, since it's the more conservative view of the
+same data.
+
+**Investigated the "your call" open question directly, added 2026-09-05: does finer stromal
+subtyping rescue the Nayar et al. panel, or is the negative result final?** The scoping-mismatch
+explanation above was speculative — CellTypist's broad `Fibroblasts`/`Endothelial cells` labels
+might pool a real, rare pericyte/immunofibroblast substate with the bulk, diluting a real signal
+into a null. This was actually tested rather than left as an open question: Leiden-subclustered the
+already-stromal-restricted compartment (`src/mg_thymus_map/stromal/subtyping.py`,
+`cluster_stromal_subtypes`, resolution=1.0, using the neighbors graph already computed for this
+object — 23 subclusters), then scored every subcluster against Nayar et al.'s own
+immunofibroblast and pericyte/mural marker sets (`score_marker_sets`, `NAYAR_SUBSTATE_MARKERS`) and
+flagged which subclusters are genuine outliers for one marker set over the other
+(`label_dominant_substate`, 4 subtyping unit tests, 100% coverage). **This did find real,
+clean substates the broad label was hiding** — subclusters 12 (n=1,430) and 16 (n=1,112) score
+strongly pericyte-like (mean score +0.77/+0.88 vs. immunofibroblast scores of -0.29/-0.01, a large,
+unambiguous gap) and subcluster 21 (n=910) scores clearly immunofibroblast-like (+0.27 vs. -0.14);
+all three are well-represented across all 13 patients (101–649 cells/patient in the pericyte-like
+pool, 6–446 in the immunofibroblast-like one — no patient is missing from either). **Re-running the
+patient-level Mann-Whitney test restricted to just these substate-specific cells still does not
+recover the Nayar et al. panel:** pericyte/mural genes within the pooled pericyte-like subclusters
+(12+16+8+22) range p=0.14–1.00 (best: MCAM/VCAM1 at p=0.138, p_bh=0.48); immunofibroblast genes
+within subcluster 21 range p=0.14–1.00 (best: CXCL9 at p=0.051, p_bh=0.32) — CXCL9 is the closest
+any ground-truth gene has come to significance anywhere in this project's re-analysis, but it does
+not clear it, corrected or not. Full results in `step5_pericyte_subcluster_patient_level.csv` /
+`step5_immunofibroblast_subcluster_patient_level.csv`; subclustered object at
+`data/interim/sjogrens_stromal_subclustered.h5ad` (gitignored, regenerable). **This closes the
+question rather than leaving it open: the scoping-mismatch hypothesis does not rescue the panel at
+the resolution this dataset supports.** The remaining live possibilities are (a) a genuine
+cross-cohort/technical difference between this project's reprocessing and Nayar et al.'s own
+pipeline, or (b) Nayar et al.'s finding itself reflecting a substate finer than even this
+subclustering recovers (e.g. within-subcluster spatial microniches GeoMx can resolve but scRNA-seq
+subclustering cannot) — neither is testable further with this dataset, so the honest conclusion is
+that the negative result **is final for this pilot**, not merely provisional pending more analysis.
+
 **Bottom line:** Step 5 did not confirm the specific Nayar et al. fibroblast/pericyte marker
-panel — that comparison is honestly reported as unconfirmed at the correct unit of replication, for
-reasons that are at least partly attributable to this project's own stromal-annotation resolution
-limit, not necessarily a biological miss. What it did find, and what survived the same scrutiny that
-caught item 5's problem in Step 4, is a real, literature-independent interferon-stimulated-gene
-signature specific to true Sjögren's (PSS) stromal tissue relative to the sicca (SICCA) comparator —
-a genuine disease-specific, architecture-independent finding, matching one of the field's most
-replicated results for this exact disease. Only the top handful of candidates were spot-checked at
-the patient level; the remainder of the 13,572-gene ranked list should be treated as a cell-level
+panel, including after directly testing (not just noting) the scoping-mismatch explanation via
+finer subtyping — that comparison is honestly reported as unconfirmed at the correct unit of
+replication, and the negative result stands as final for this pilot dataset. What it did find, and
+what survived the same scrutiny that caught item 5's problem in Step 4 (now including proper
+multiple-testing correction within its own hypothesis family), is a real, literature-corroborated
+interferon-stimulated-gene signature specific to true Sjögren's (PSS) stromal tissue relative to
+the sicca (SICCA) comparator — a genuine disease-specific, architecture-independent finding,
+matching one of the field's most replicated results for this exact disease, with inline citations
+now attached rather than asserted narratively. Only the top handful of candidates were spot-checked
+at the patient level; the remainder of the 13,572-gene ranked list should be treated as a cell-level
 candidate list requiring the same patient-level check before being cited as confirmed, not assumed
 solid by extension.
 
@@ -1599,13 +1670,21 @@ isn't standardized across studies.
       cluster permutation p=0.003, the mathematical minimum at this sample size), with real
       specificity (p=0.000122, also the exact minimum at n=13). The PSS>SICCA sub-claim did NOT
       survive patient-level correction and is retracted — 2026-09-02.**
-- [x] `src/mg_thymus_map/stromal/` — subtraction / stromal extraction. **Done (Step 5): the specific
-      Nayar et al. ground-truth marker panel did not hold up at the patient level (likely a stromal-
-      subtyping resolution limit, not necessarily a miss), but a real, literature-corroborated
+- [x] `src/mg_thymus_map/stromal/` — subtraction / stromal extraction, plus `patient_level.py`
+      (committed patient-level Mann-Whitney + BH correction) and `subtyping.py` (Leiden
+      subclustering + Nayar-marker-set scoring), both added 2026-09-05. **Done (Step 5): the
+      specific Nayar et al. ground-truth marker panel did not hold up at the patient level, even
+      after directly testing finer stromal subtyping as a possible rescue (it didn't rescue it —
+      see the Step 5 section's 2026-09-05 update; this negative result is now final for this
+      pilot, not just a resolution-limit hedge). A real, literature-corroborated
       interferon-stimulated-gene signature (IFI6/IFI44L/XAF1 + glandular genes PIP/LYZ/AZGP1)
-      specific to true Sjögren's stromal tissue was found and confirmed patient-level — 2026-09-02.
-      ⚠️ NOT YET REVIEWED by the user as of 2026-09-03 — may still change; Step 6 is built on this
-      list but is gene-list-agnostic, so a change here only requires re-running Step 6, not rewriting it.**
+      specific to true Sjögren's stromal tissue was found and confirmed patient-level, with
+      family-appropriate BH correction and inline literature citations added 2026-09-05 — 6 of 7
+      candidate genes (all but MUC7) survive correction within their own hypothesis family.
+      ⚠️ Still not yet explicitly signed off by the user as final as of 2026-09-05 — the
+      2026-09-05 changes closed a citation reviewer's gaps but the user has not separately said
+      "this is approved." Step 6 is built on this gene list but is gene-list-agnostic, so a change
+      here only requires re-running Step 6, not rewriting it.**
 - [x] `src/mg_thymus_map/pharma/` — DGIdb/ChEMBL clients + ranking. **Done (Step 6): the literal
       Step 5 gene list had no real drug hits (expected — ISGs are downstream effectors, not drug
       targets themselves); reasoning one level upstream to the type-I interferon pathway surfaced
