@@ -1504,7 +1504,16 @@ fabricated) with no live network call in CI, per the plan's own test-plan wordin
 `combine_and_rank` merges on (gene, drug) case-insensitively and ranks by n_sources → max_phase →
 DGIdb interaction_score — this project's own reasoned ranking choice (documented as such in the
 module docstring, not presented as a field-standard formula), tested against synthetic overlapping
-results including the exact ordering behavior. 17 new tests, 100% coverage, 136 tests project-wide.
+results including the exact ordering behavior. 17 new tests.
+**Correction, added 2026-09-06 after a direct code-verification pass:** the original "100%
+coverage" claim was wrong — `pharma/chembl.py` was actually 98% (missing `query_chembl_molecule_names`'s
+empty-input early return) and `pharma/ranking.py` was 89% (missing the `ch.empty` branch in
+`combine_and_rank`, i.e. DGIdb-only results with zero ChEMBL rows at all, as opposed to the
+already-tested case of a ChEMBL row present but lacking a match). Both were real, minor,
+easy-to-add test gaps, not bugs — the untested branches were correct as written, just unexercised.
+**Fixed the same day:** added `test_query_chembl_molecule_names_empty_list_skips_network` and
+`test_combine_and_rank_handles_empty_chembl_results` — pharma is now genuinely 19 tests, 100%
+coverage (150 tests project-wide).
 
 **Real result 1: the direct Step 5 gene list came back almost empty — expected, and informative,
 not a failure.** ChEMBL had zero drug mechanisms for all six genes (PIP, LYZ, IFI6, IFI44L, XAF1,
@@ -1566,6 +1575,44 @@ already-approved drug candidate (anifrolumab) plus a class of approved drugs (JA
 independent real-world relevance to this exact disease. **This entire result is downstream of
 Step 5's specific gene list and should be re-run if that list changes** — the pipeline itself
 doesn't need to change, just its input.
+
+**Independent verification pass, added 2026-09-06 (every checkable claim in this section was
+re-derived from the saved CSVs, live API calls, or an external registry — not re-read from this
+doc):**
+- **PIP gene identity:** HGNC live lookup confirms `PIP` = HGNC:8993, "prolactin induced protein" —
+  exact match, no gene-symbol collision, as claimed.
+- **PIP's two DGIdb hits** (TAMOXIFEN CITRATE score 1.960, THERAPEUTIC HORMONE score 1.203) and
+  **zero ChEMBL hits for all 6 direct genes** — both confirmed exactly against
+  `step6_dgidb_raw.csv` / `step6_chembl_raw.csv`.
+- **Inhibitor-direction filter counts** ("69 of 91 ChEMBL, 350 of 371 DGIdb"): recounted directly
+  from `step6_chembl_ifn_pathway_raw.csv` (91 total rows, 69 with `action_type` in
+  {INHIBITOR, ANTAGONIST, NEGATIVE ALLOSTERIC MODULATOR}) and `step6_dgidb_ifn_pathway_raw.csv`
+  (371 total rows, 350 after excluding the 21 agonist-only rows) — both exact.
+- **Anifrolumab:** live ChEMBL lookup (`pref_name__iexact=ANIFROLUMAB`) confirms `first_approval:
+  2021`, trade name Saphnelo, `max_phase: 4.0` — exact match to "FDA-approved anti-IFNAR1 antibody,
+  approved for SLE, 2021." Its row in `step6_ranked_ifn_pathway.csv` is n_sources=2
+  (ChEMBL,DGIdb), confirming the "found in both databases" claim.
+- **"12 distinct approved JAK-family inhibitors":** recounted from `step6_ranked_ifn_pathway.csv`
+  (n_sources=2, max_phase=4, gene≠IFNAR1, normalized to strip salt/hydrate suffixes) — exactly 12
+  distinct active ingredients, matching the named list verbatim.
+- **DGIdb fixture authenticity:** `tests/fixtures/dgidb_response_vcam1.json`'s two recorded
+  interaction scores for VCAM1 (MERCAPTOPURINE 0.392089, TROGLITAZONE 0.882200) were re-queried
+  live against DGIdb and match to 6 decimal places (the live result now also includes 3 additional
+  drugs the database has added since this fixture was recorded — consistent with a real snapshot
+  that's since grown, not a fabricated one).
+- **Coverage claim was wrong, now fixed:** "17 new tests, 100% coverage" understated a real gap —
+  `chembl.py` was 98%, `ranking.py` was 89% (both missing a genuine, if minor, edge-case branch:
+  an empty molecule-id list, and a non-empty DGIdb result paired with zero ChEMBL rows). Two tests
+  added same day close both gaps; pharma is now actually 19 tests at 100% coverage (150 tests
+  project-wide) — see the correction inline above.
+- **Code logic:** re-read `dgidb.py`, `chembl.py`, `ranking.py` end to end — the three-endpoint
+  ChEMBL chain (target → mechanism → molecule), the GraphQL error-raising behavior, and the
+  ranking sort order (n_sources → max_phase → interaction_score) all match their docstrings and
+  the plan's own description; no logic bugs found.
+
+**Everything else in this section checks out as originally reported.** Step 6 can be treated as
+confirmed, modulo the same standing caveat already stated above: it's built on Step 5's gene list,
+which the user has not yet separately signed off as final.
 
 ### Step 7 — Validation & reporting
 
@@ -1689,7 +1736,12 @@ isn't standardized across studies.
       Step 5 gene list had no real drug hits (expected — ISGs are downstream effectors, not drug
       targets themselves); reasoning one level upstream to the type-I interferon pathway surfaced
       anifrolumab (FDA-approved anti-IFNAR1 antibody, found in both DGIdb and ChEMBL) plus 12
-      approved JAK inhibitors — 2026-09-03. Depends on Step 5's gene list; re-run if it changes.**
+      approved JAK inhibitors — 2026-09-03. Depends on Step 5's gene list; re-run if it changes.
+      **Independently verified 2026-09-06:** every checkable number (PIP identity, DGIdb/ChEMBL
+      hit counts, filter counts, anifrolumab's approval facts, the 12-JAK-inhibitor count, fixture
+      authenticity) re-derived from raw CSVs/live APIs and confirmed exact; the one real gap found
+      was an inflated "100% coverage" claim (was 98%/89% on two files), fixed same day with 2 new
+      tests — pharma is now genuinely 19 tests, 100% coverage.**
 - [x] `tests/unit/`, `tests/integration/`, `tests/fixtures/` covering all of the above. **Done for
       Steps 1–6** (136 tests total, `make test` green, 100% coverage on covered modules including
       `mg_spatial.py`, `spatial_validation.py`, `cross_disease_projection.py`, `stromal/extraction.py`,
