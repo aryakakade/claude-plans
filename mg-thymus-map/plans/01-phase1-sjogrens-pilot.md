@@ -1512,7 +1512,7 @@ above), `step5_candidate_patient_level_check.csv` (the two patient-level spot-ch
 scored interim data at `data/interim/sjogrens_stromal_scored.h5ad`. All gitignored, regenerable via
 `src/mg_thymus_map/stromal/extraction.py`'s functions.
 
-### Step 6 — Pharmacogenomic mapping — Status: ✅ Complete (2026-09-03), built on a PROVISIONAL Step 5 gene list
+### Step 6 — Pharmacogenomic mapping — Status: ✅ Complete (2026-09-03), independently verified 2026-09-06, built on a USER-APPROVED FINAL Step 5 gene list (confirmed 2026-09-07)
 
 **Goal:** turn the stromal marker gene list into candidate druggable targets.
 
@@ -1525,13 +1525,13 @@ scored interim data at `data/interim/sjogrens_stromal_scored.h5ad`. All gitignor
 **Tests to add later:** client tests against recorded API-response fixtures (no live network calls
 in CI); a test that the ranking/dedup logic behaves correctly on synthetic overlapping results.
 
-**⚠️ Standing caveat, added 2026-09-03: the user has not yet reviewed Step 5 and may request
-changes to it.** Everything below is built on Step 5's current gene list (PIP, LYZ, IFI6, IFI44L,
-XAF1, AZGP1). The code is deliberately gene-list-agnostic — `pharma`'s functions take any gene list
-as a plain argument, nothing about Step 5's specific genes is hardcoded into the client/ranking
-code — so if Step 5's candidate list changes after review, only the Step 6 *results* (this section's
-tables, and the two `data/processed/step6_*.csv` runs) need to be regenerated, not the code. Don't
-treat this section's specific drug list as final until Step 5 is confirmed stable.
+**✅ Resolved 2026-09-07: Step 5 is now user-approved final** (see Step 5's sign-off note above) —
+the gene list this section is built on (PIP, LYZ, IFI6, IFI44L, XAF1, AZGP1) is settled, so this
+section's drug list can now be treated as final too, not provisional. Kept as a note for the record:
+the code is deliberately gene-list-agnostic — `pharma`'s functions take any gene list as a plain
+argument, nothing about Step 5's specific genes is hardcoded into the client/ranking code — so if
+Step 5 is ever revisited in a later phase, only the Step 6 *results* (this section's tables, and the
+two `data/processed/step6_*.csv` runs) would need to be regenerated, not the code.
 
 **Implementation — done 2026-09-03.** Built `src/mg_thymus_map/pharma/` (`dgidb.py`, `chembl.py`,
 `ranking.py`). Each client splits a thin IO wrapper from a pure parser (`parse_dgidb_response`,
@@ -1649,9 +1649,9 @@ doc):**
   ranking sort order (n_sources → max_phase → interaction_score) all match their docstrings and
   the plan's own description; no logic bugs found.
 
-**Everything else in this section checks out as originally reported.** Step 6 can be treated as
-confirmed, modulo the same standing caveat already stated above: it's built on Step 5's gene list,
-which the user has not yet separately signed off as final.
+**Everything else in this section checks out as originally reported.** Step 6 is fully confirmed:
+independently verified 2026-09-06, and its one remaining dependency (Step 5's gene list) was
+user-approved final on 2026-09-07 — no open caveats remain on this step.
 
 ### Step 7 — Validation & reporting
 
