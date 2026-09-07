@@ -1114,7 +1114,7 @@ independently confirmed at the correct unit of replication, not resting on a cel
 might hide the same pseudoreplication problem that sank item 5. This
 is Step 4's actual Phase 1 deliverable — the cross-disease finding Steps 1–3 were built toward.
 
-### Step 5 — Stromal extraction — Status: ✅ Complete (2026-09-02); citation review + follow-up gaps closed 2026-09-05
+### Step 5 — Stromal extraction — Status: ✅ Complete (2026-09-02); citation review + follow-up gaps closed 2026-09-05; second citation audit (XAF1 sourcing + PMC4564326 mislabel) closed 2026-09-07
 
 **Goal:** isolate the non-immune, Sjögren's-specific damage signal left over after removing the
 shared immune architecture.
@@ -1257,12 +1257,23 @@ finding out later they don't hold up.
   artifactual result either. **This is independently corroborated by established Sjögren's
   literature** (citations added 2026-09-05, verified against the actual sources rather than left as
   an unsourced narrative claim): a type-I interferon signature in Sjögren's salivary gland tissue is
-  one of the most consistently replicated findings in the field — see the review [Type I and type II
-  interferon signatures in Sjögren's syndrome pathogenesis](https://pmc.ncbi.nlm.nih.gov/articles/PMC4564326/)
-  (PMC4564326); IFI44/IFI44L specifically is covered in "Identification and Validation of IFI44 as a
-  Novel Biomarker for Primary Sjögren's Syndrome," *Journal of Inflammation Research* 2024, PMID
-  39219820; and XAF1 has been separately reported as a
-  Sjögren's hub-gene biomarker in the same interferon-response literature. This project's own
+  one of the most consistently replicated findings in the field — see Nezos A, Gravani F, Tassidou A,
+  Kapsogeorgou EK, Voulgarelis M, Koutsilieris M, Crow MK, Mavragani CP, "[Type I and II
+  interferon signatures in Sjögren's syndrome pathogenesis: Contributions in distinct clinical
+  phenotypes and Sjögren's related lymphomagenesis](https://pmc.ncbi.nlm.nih.gov/articles/PMC4564326/),"
+  *Journal of Autoimmunity* 63:47-58 (2015), PMC4564326 (**correction, 2026-09-07:** this is a
+  primary clinical research paper, not a review — earlier text here mislabeled it "the review" without
+  checking; the mischaracterization was caught during a citation audit, not the paper's authenticity,
+  which was independently confirmed); IFI44/IFI44L specifically is covered in "Identification and
+  Validation of IFI44 as a Novel Biomarker for Primary Sjögren's Syndrome," *Journal of Inflammation
+  Research* 2024, PMID 39219820 (this same paper's own diagnostic gene panel also includes XAF1
+  alongside IFI44, though a more directly on-point source exists — see next); and XAF1 specifically
+  is covered in Xiao L, Yang Z, Lin S, "[IRF9 and XAF1 as Diagnostic Markers of Primary Sjogren
+  Syndrome](https://pmc.ncbi.nlm.nih.gov/articles/PMC9484944/)," *Computational and Mathematical
+  Methods in Medicine* 2022:1867321, DOI: 10.1155/2022/1867321, PMID 36132546 (PMC9484944) — AUC
+  0.792 for XAF1 as a diagnostic marker (**correction, 2026-09-07:** this citation was previously
+  missing; the claim was asserted without a specific source — "the same interferon-response
+  literature" — caught during a citation audit on 2026-09-07). This project's own
   independently-derived candidate list reproducing that signature, without having been told to look
   for it, is a genuine positive validation, structurally the same kind of check as Step 3's
   literature cross-check on CXCL13/CCL19/CXCL10. Full ranked list: 13,572 genes in
@@ -1336,6 +1347,24 @@ matching one of the field's most replicated results for this exact disease, with
 now attached rather than asserted narratively. Only the top handful of candidates were spot-checked
 at the patient level; the remainder of the 13,572-gene ranked list should be treated as a cell-level
 candidate list requiring the same patient-level check before being cited as confirmed, not assumed
+
+**⚠️ User sign-off status, 2026-09-07 — PARTIAL, not yet complete.** The user reviewed Step 5 in
+full (raw p-values and CSV outputs spot-checked against the code, all matched exactly; citations
+independently verified against PubMed/PMC) and made three decisions:
+1. **SICCA as comparator instead of the plan's literal "healthy tonsil/control" — approved.**
+2. **Nayar et al. panel reported as a final negative for this pilot (not a hedge) — approved.**
+   Two live alternative explanations remain but are untestable with this dataset: (a) a genuine
+   pipeline/technical difference between this project's reprocessing and Nayar et al.'s own, or
+   (b) Nayar's finding reflecting a spatial microniche effect (their own ground truth is GeoMx
+   spatial proteomics, not scRNA-seq) finer than any scRNA-seq subclustering could recover. Neither
+   is a flaw in this project's work, just a real ceiling on what this data can resolve.
+3. **Per-family BH correction (7-gene candidate family only) as the primary reported statistic —
+   NOT YET approved.** This is the single most consequential statistical choice in this step: it
+   determines whether Step 5 has a headline finding at all (per-family: PIP/LYZ/IFI6/IFI44L/XAF1/
+   AZGP1 survive at p_bh≈0.039-0.041; pooled with the 6 null ground-truth genes: nothing survives,
+   best p_bh=0.072). The user asked to sit with this specific choice longer before signing off.
+   **Do not mark Step 5 as fully user-approved, and do not treat Step 6/7 as resting on finalized
+   Step 5 numbers, until this one decision is explicitly confirmed.**
 solid by extension.
 
 **Full numbers appendix, added 2026-09-03 (every number this session actually produced, not just the
