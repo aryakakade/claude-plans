@@ -1348,9 +1348,10 @@ now attached rather than asserted narratively. Only the top handful of candidate
 at the patient level; the remainder of the 13,572-gene ranked list should be treated as a cell-level
 candidate list requiring the same patient-level check before being cited as confirmed, not assumed
 
-**⚠️ User sign-off status, 2026-09-07 — PARTIAL, not yet complete.** The user reviewed Step 5 in
-full (raw p-values and CSV outputs spot-checked against the code, all matched exactly; citations
-independently verified against PubMed/PMC) and made three decisions:
+**✅ User sign-off status, 2026-09-07 — COMPLETE. Step 5 is user-approved, final.** The user
+reviewed Step 5 in full (raw p-values and CSV outputs spot-checked against the code, all matched
+exactly; citations independently verified against PubMed/PMC, catching and fixing the XAF1/
+PMC4564326 gaps above) and made three decisions, all now confirmed:
 1. **SICCA as comparator instead of the plan's literal "healthy tonsil/control" — approved.**
 2. **Nayar et al. panel reported as a final negative for this pilot (not a hedge) — approved.**
    Two live alternative explanations remain but are untestable with this dataset: (a) a genuine
@@ -1358,13 +1359,22 @@ independently verified against PubMed/PMC) and made three decisions:
    (b) Nayar's finding reflecting a spatial microniche effect (their own ground truth is GeoMx
    spatial proteomics, not scRNA-seq) finer than any scRNA-seq subclustering could recover. Neither
    is a flaw in this project's work, just a real ceiling on what this data can resolve.
-3. **Per-family BH correction (7-gene candidate family only) as the primary reported statistic —
-   NOT YET approved.** This is the single most consequential statistical choice in this step: it
-   determines whether Step 5 has a headline finding at all (per-family: PIP/LYZ/IFI6/IFI44L/XAF1/
-   AZGP1 survive at p_bh≈0.039-0.041; pooled with the 6 null ground-truth genes: nothing survives,
-   best p_bh=0.072). The user asked to sit with this specific choice longer before signing off.
-   **Do not mark Step 5 as fully user-approved, and do not treat Step 6/7 as resting on finalized
-   Step 5 numbers, until this one decision is explicitly confirmed.**
+3. **Per-family BH correction (7-gene candidate family only) as the primary reported statistic,
+   with the pooled 13-gene (Family A) version kept and shown alongside it, not dropped — approved.**
+   Family B (per-family: PIP/LYZ/IFI6/IFI44L/XAF1/AZGP1 survive at p_bh≈0.039-0.041) is the
+   headline result; Family A (pooled with the 6 null ground-truth genes: nothing survives, best
+   p_bh=0.072) is reported alongside it for a reviewer who wants the stricter view, per
+   `step5_candidate_patient_level_bh.csv` / `step5_ground_truth_patient_level_bh.csv` (Family B)
+   and `step5_patient_level_bh_corrected.csv` (Family A). The choice of "family" is a judgment call,
+   not a fixed rule, in the multiple-testing literature -- see García-Pérez MA, "Use and misuse of
+   corrections for multiple testing," *Methods in Psychology* 8:100120 (2023), DOI:
+   10.1016/j.metip.2023.100120, and Noble WS, "How does multiple testing correction work?" *Nature
+   Biotechnology* 27:1135-1137 (2009) (**note:** these two supporting citations were located via
+   search and not independently read in full text past a paywall as of 2026-09-07 -- verify the
+   exact passage before quoting either directly in an ISEF write-up, same as any other citation in
+   this document).
+
+Step 6 and Step 7 may now treat Step 5's gene list and both BH-corrected tables as finalized.
 solid by extension.
 
 **Full numbers appendix, added 2026-09-03 (every number this session actually produced, not just the
