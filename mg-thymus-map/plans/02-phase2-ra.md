@@ -1,13 +1,16 @@
 # Phase 2 Plan — Rheumatoid Arthritis (Synovium) Extension
 
-Status: **In progress.** Step 1 (data acquisition) has real code — dataset chosen, download
-scripts written and run for real, loaders written and tested (160 tests project-wide, `make test`
-green) — as of 2026-09-08. This is still a living document meant to be argued with and edited, the
-same way Phase 1's plan doc was, not a finished spec. Sections marked **OPEN** need a real decision
-before the next step can start cleanly; everything else is a reasonable default carried over from
-Phase 1, subject to change. **One real blocker found while building Step 1, not yet resolved:** no
-per-sample RA-specific diagnosis is recoverable from the data's own machine-readable metadata —
-see the consolidated open questions at the end of this doc, item 1.
+Status: **In progress.** Step 1 (data acquisition) is functionally complete as of 2026-09-09: both
+datasets fully downloaded (real files, not partial — RA's 3.75 GB matrix and all 4 OA samples) and
+confirmed loading correctly against the real data, not just synthetic fixtures — 102,758 real RA
+cells, 32,856 real OA cells, dimensions matching exactly what was predicted from the raw file
+headers before any code was written. 160 tests project-wide, `make test` green. This is still a
+living document meant to be argued with and edited, the same way Phase 1's plan doc was, not a
+finished spec. Sections marked **OPEN** need a real decision before the next step can start
+cleanly; everything else is a reasonable default carried over from Phase 1, subject to change.
+**One real blocker found while building Step 1, not yet resolved:** no per-sample RA-specific
+diagnosis is recoverable from the data's own machine-readable metadata — see the consolidated open
+questions at the end of this doc, item 1.
 Parent plan: [`00-overview.md`](00-overview.md). Companion: [`01-phase1-sjogrens-pilot.md`](01-phase1-sjogrens-pilot.md),
 whose code and conventions this phase reuses wholesale.
 
@@ -46,7 +49,8 @@ reported — not assumed to be fine because Phase 1's code already handles it co
 ## 3. Definition of done for Phase 2
 
 - [~] An RA synovium scRNA-seq (or spatial) dataset is downloaded, documented, and loads cleanly.
-      **Downloaded and loadable as of 2026-09-08** (`load_ra_synovium`/`load_oa_synovium`, 10
+      **Fully downloaded and confirmed loading against real data as of 2026-09-09**
+      (`load_ra_synovium`/`load_oa_synovium`, 102,758 real RA cells + 32,856 real OA cells, 10
       passing tests) — but "RA" is currently 25 samples of mixed inflammatory arthritis, not a
       confirmed RA-only subset (see the open questions). **ISEF-compliance check not yet done** —
       needs the same explicit two-exemption check §3a of the Phase 1 doc ran for every other
@@ -219,6 +223,26 @@ suggesting it's been retired/moved). **Consequence, made explicit rather than si
 generic placeholder, not a guess at which 15 of 25 samples are RA. **This is now the single most
 important open item blocking Step 2+** — see the consolidated open questions at the end of this
 doc.
+
+**Real download completed and the real loader run against the full 3.75 GB file, 2026-09-09 — not
+just the synthetic test.** `download_ra_synovium.py` pulled all 4 real files cleanly (the 3.5 GB
+matrix, confirmed as 3,749,874,692 bytes on disk). `load_ra_synovium` against the real data:
+**102,758 cells × 17,057 genes — exactly matching the dimensions read from the raw `.mtx` header
+during the earlier verification pass**, no shape mismatch. **25 samples, 23 unique individuals** —
+precisely confirms the structural analysis above: individuals 77 and 98 each contributed two
+separate biopsies (`Syn_Bio_077a`/`077b`, `Syn_Bio_098a`/`098b`), correctly kept as 4 distinct
+samples belonging to 2 individuals by the `startswith`-based SDRF matching, not collapsed or
+conflated. Per-sample cell counts range 524 (`Syn_Bio_049`, the smallest) to 7,843
+(`Syn_Bio_026`) — real, expected biological/technical variation, not a bug. Sex split: 82,502
+female cells / 20,256 male cells, consistent with the cohort's real sex composition (19 of 23
+individuals female, per the SDRF). One benign warning (`Variable names are not unique` — some
+gene symbols repeat in `genes_filtered.txt`, which has no Ensembl ID column to disambiguate by;
+resolved by the loader's own `var_names_make_unique()` call immediately after, same as every other
+loader in this project) — not a bug, not chased further.
+
+**Both real datasets are now fully downloaded, loaded, and confirmed working end-to-end against
+real data, not just synthetic fixtures.** Step 1 is functionally complete pending only the
+diagnosis-mapping blocker above.
 
 ### Step 2 — QC, normalization, annotation — Status: reused code, fresh data
 
