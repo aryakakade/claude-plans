@@ -88,7 +88,15 @@ risky. Sjögren's is a reasonable first target to pair with MG because:
       bullets only (what was run, headline metric, stromal/drug list, positive-control result,
       spatial cross-check summary, Limitations, process/audit notes), not yet expanded into full
       prose. Depends on Step 7's remaining pieces (cross-check summary is drafted; Limitations
-      section drafted but not reviewed).
+      section drafted but not reviewed). **Extended 2026-09-08 with two companion docs, both
+      committed and pushed to the `mg-thymus-map` repo (commit `b4d566d`):**
+      `mg-thymus-map/docs/phase1_methods.md` (finalized methodology only, written paper-style,
+      grounded directly in the real function names/parameters in `src/mg_thymus_map` — no
+      narrative, no bugs, just what was ultimately done) and
+      `mg-thymus-map/docs/phase1_full_story.md` (the complete development narrative — every method
+      attempted, every real bug found and fixed, every retraction, told in the order it actually
+      happened, condensed from this plan doc's full history). All three docs cross-reference each
+      other at the top.
 
 ## 3a. Data-source compliance (ISEF Human Participants / Tissue rules) — checked 2026-08-31
 
