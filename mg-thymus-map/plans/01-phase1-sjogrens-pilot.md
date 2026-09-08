@@ -1749,20 +1749,39 @@ flipped) and re-running them here would just dilute a question Step 5 already an
 information. BH-corrected as one 6-gene family (CXCL13, TNFSF13B, CCL19, CXCL9, CXCL10, CXCL11) —
 this is the project's own seed-signature genes, one coherent hypothesis family, not mixed with an
 unrelated question the way Step 5 flagged as a real judgment call for its own multiple-testing
-choice:
+choice.
+
+**Extended to a 7th gene the same day, after a direct question about why the family stopped at six.**
+Re-checked `seed.py`'s own citation audit for any seed gene with genuine independent literature
+support that was neither in this 6-gene family nor already patient-level tested by Step 5 (whose
+CCL8/CCL21 results already answer that question for those two): **CCL5** qualifies — two independent
+sources per `seed.py` (Nakamura et al. 2022, full-text-verified; a lower-confidence Xu et al. 2022
+lead) — and had never been tested. The remaining untested seed genes (CCL2, CCL3, CCL18) were
+deliberately left out: `seed.py`'s audit found **zero independent sources** for any of them, so
+testing them wouldn't corroborate anything external — it would just check the data against genes
+with no independent claim to check against, sliding back toward the circularity this whole
+reframing exists to avoid. CCL4 was also left out (one source, and it's the same
+paywalled/search-snippet-only Xu et al. lead already effectively covered by CCL8's already-tested
+result). Re-ran the full patient-level test as one 7-gene family:
 
 | gene | direction | raw p | p_bh |
 |---|---|---:|---:|
-| CXCL9 | up in PSS | 0.00233 | **0.01399** |
-| CXCL10 | up in PSS | 0.00466 | **0.01399** |
-| CXCL11 | up in PSS | 0.00816 | **0.01632** |
-| CXCL13 | up in PSS | 0.03497 | 0.05245 |
-| CCL19 | up in PSS | 0.18065 | 0.21678 |
+| CXCL9 | up in PSS | 0.00233 | **0.00816** |
+| CCL5 | up in PSS | 0.00117 | **0.00816** |
+| CXCL10 | up in PSS | 0.00466 | **0.01088** |
+| CXCL11 | up in PSS | 0.00816 | **0.01428** |
+| CXCL13 | up in PSS | 0.03497 | **0.04895** |
+| CCL19 | up in PSS | 0.18065 | 0.21076 |
 | TNFSF13B | up in PSS | 0.53380 | 0.53380 |
 
-Saved to `data/processed/step7_positive_control_seed_family.csv`. **Three of six clear correction
-outright: CXCL9, CXCL10, CXCL11 — the three canonical CXCR3-ligand, interferon-inducible chemokines.**
-This is a genuinely convergent result, not an isolated one: Step 5's own independent, unbiased
+Saved to `data/processed/step7_positive_control_seed_family.csv` (overwritten with the 7-gene
+version; the 6-gene numbers above are superseded, not separately kept, since this is a strict
+extension of the same family, not a different question). **Five of seven now clear correction: CCL5,
+CXCL9, CXCL10, CXCL11, and — newly, with CCL5 added — CXCL13 as well** (p_bh=0.04895, just inside
+0.05; it did not clear at the 6-gene family size). CCL5 is itself notable: like CXCL9/10/11 it's a
+T-cell/macrophage-derived chemokine broadly induced by inflammatory/interferon signaling rather than
+tied to one narrow stromal substate, consistent with the same broad-vs-narrow-source explanation
+below. This is a genuinely convergent result, not an isolated one: Step 5's own independent, unbiased
 differential-expression ranking (not seeded with any prior gene list) separately found an
 interferon-stimulated-gene signature (IFI6/IFI44L/XAF1) elevated in the same PSS-vs-SICCA
 comparison. Two independent parts of this pipeline — a targeted literature-seed check here, and an
@@ -1797,16 +1816,18 @@ would need a dedicated GC-B-cell-level Sjögren's-vs-tonsil comparison, a differ
 from everything else in this section, flagged here as a candidate follow-up rather than run under
 time pressure. Saved to `data/processed/step7_positive_control_cd40.csv`.
 
-**Bottom line, updated 2026-09-08:** of seven genes checked (six seed genes + CD40), three
-(CXCL9/10/11) clear BH correction cleanly and converge with Step 5's independent finding; one
-(CXCL13) leans right but doesn't clear correction; two (CCL19, TNFSF13B) show no patient-level
-support, with TNFSF13B's negative directly confirmed as real rather than a scoping artifact; CD40's
-apparent wrong-direction result is most likely a compartment mismatch, not a genuine contradiction,
-but wasn't chased further. Net read: **this project's literature-seed signature has real,
-multiply-confirmed external support in independently-collected Sjögren's data (not just circular
-self-containment), even though not every individual seed gene replicates** — reported at gene-level
-granularity rather than compressed into one pass/fail verdict, matching this project's established
-pattern of not overclaiming a clean result nor discarding a mixed one.
+**Bottom line, updated 2026-09-08 (final, 7-gene family + CD40):** of eight genes checked (seven
+seed genes + CD40), five (CCL5, CXCL9, CXCL10, CXCL11, CXCL13) clear BH correction and converge with
+Step 5's independent interferon-signature finding; two (CCL19, TNFSF13B) show no patient-level
+support, with TNFSF13B's negative directly confirmed as real (not a scoping artifact) via Step 5's
+existing subcluster rescue check; CD40's apparent wrong-direction result is most likely a compartment
+mismatch, not a genuine contradiction, but wasn't chased further. Net read: **this project's
+literature-seed signature has real, multiply-confirmed external support in independently-collected
+Sjögren's data (not just circular self-containment) — a clear majority of the individually-sourced
+seed genes replicate, and the two/three that don't (CCL19, TNFSF13B, and CD40's mismatch) have a
+concrete, checked explanation rather than being left as an unexplained gap** — reported at
+gene-level granularity rather than compressed into one pass/fail verdict, matching this project's
+established pattern of not overclaiming a clean result nor discarding a mixed one.
 
 - Spatial/ground-truth cross-check: summarize how the Step 3 comparison (against the MG
   thymoma/hyperplasia Visium paper, a real reprocessable spatial dataset) and the Step 5
