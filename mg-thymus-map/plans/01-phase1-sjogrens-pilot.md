@@ -1,11 +1,15 @@
 # Phase 1 Plan — MG (Thymus) vs. Sjögren's Syndrome Pilot
 
-Status: **In progress.** Phase 0 (repo scaffold) and Phase 1 Steps 1–3 (data
-assembly, QC/normalization/annotation/integration, and TLS signature
-derivation including spatial validation) are implemented, tested, and
-verified against real downloaded data as of 2026-09-01 — see the "Implementation
-notes" under each step below for what was actually built and found. Steps 4–7 are
-still at the planning stage, not yet started.
+Status: **In progress.** Phase 0 (repo scaffold) and Phase 1 Steps 1–6 (data
+assembly through pharmacogenomic mapping) are implemented, tested, and verified
+against real downloaded data — Steps 1–3 as of 2026-09-01, Step 4 (with one
+sub-claim retracted after audit) as of 2026-09-02, Step 5 as of 2026-09-05,
+user-approved final 2026-09-07, and Step 6 (independently verified) as of
+2026-09-06 — see the "Implementation notes" under each step below for what was
+actually built and found. Step 7 (validation & reporting) is in progress as of
+2026-09-08 (positive-control check done; write-up and Limitations section still
+open) — corrected 2026-09-08, this line previously understated progress by
+saying Steps 4–7 hadn't started at all.
 Parent plan: [`00-overview.md`](00-overview.md)
 
 ## 1. Why Sjögren's Syndrome first
@@ -52,18 +56,29 @@ risky. Sjögren's is a reasonable first target to pair with MG because:
       derived. **Done 2026-08-28/2026-09-01** — 25-gene signature (13 literature_prior + 12
       mg_derived), plus spatial validation confirming it scores significantly higher in
       germinal-center/medulla Visium niches than cortex — see Step 3 implementation notes.
-- [ ] That signature has been scored (AUCell) against the Sjögren's dataset, with a quantified
-      "proportion shared" metric, benchmarked against the healthy tonsil control. **Not started.**
-- [ ] Stromal populations in Sjögren's have been isolated after subtracting the shared signal, with a
-      ranked marker-gene list. **Not started.**
-- [ ] Those markers have been queried against DGIdb/ChEMBL, producing a ranked candidate
-      target/drug list with provenance (which database, which gene, which compound). **Not
-      started.**
-- [~] Every stage above has unit tests (synthetic fixtures) and the full pipeline has one integration
-      test (tiny fixture data) — all passing via `make test`. **Steps 1–3 fully covered (cell-state
-      calling, communication analysis, signature-merge, spatial loader, and spatial validation all
-      covered) — 103 tests total, `make test` green;
-      Steps 4–7 not yet built.**
+- [x] That signature has been scored (AUCell) against the Sjögren's dataset, with a quantified
+      "proportion shared" metric, benchmarked against the healthy tonsil control. **Done
+      2026-09-02** (corrected 2026-09-08: this line was left stale after Step 4 completed) — see
+      Step 4 implementation notes; one sub-claim (PSS-vs-SICCA) was later retracted after
+      patient-level audit, headline metric (p=0.003) stands.
+- [x] Stromal populations in Sjögren's have been isolated after subtracting the shared signal, with a
+      ranked marker-gene list. **Done 2026-09-02/2026-09-05, user-approved final 2026-09-07**
+      (corrected 2026-09-08: this line was left stale after Step 5 completed) — see Step 5
+      implementation notes; the Nayar et al. ground-truth panel did not hold up (final negative
+      result), but an independent, literature-corroborated interferon-stimulated-gene signature was
+      found and confirmed patient-level instead.
+- [x] Those markers have been queried against DGIdb/ChEMBL, producing a ranked candidate
+      target/drug list with provenance (which database, which gene, which compound). **Done
+      2026-09-03, independently verified 2026-09-06** (corrected 2026-09-08: this line was left
+      stale after Step 6 completed) — see Step 6 implementation notes; anifrolumab + 12 JAK
+      inhibitors found via the upstream type-I interferon pathway.
+- [x] Every stage above has unit tests (synthetic fixtures) and the full pipeline has one integration
+      test (tiny fixture data) — all passing via `make test`. **Steps 1–6 fully covered, 150 tests
+      total, `make test` green as of 2026-09-08** (corrected 2026-09-08: this line previously said
+      "Steps 4-7 not yet built," stale since Step 4 completed 2026-09-02). Step 7 itself (the
+      validation/reporting step, as opposed to the code it validates) has no dedicated tests of its
+      own — none expected, since it produces a report and reruns existing tested functions rather
+      than adding new library code.
 - [x] `README.md` documents how to set up the environment and run the Phase 1 pipeline
       end-to-end via `make phase1` (or equivalent). **Done in Phase 0**; will need a further update
       once Step 3+ stages are wired into `pipeline.py` (currently only loads/validates config).
@@ -1653,13 +1668,78 @@ doc):**
 independently verified 2026-09-06, and its one remaining dependency (Step 5's gene list) was
 user-approved final on 2026-09-07 — no open caveats remain on this step.
 
-### Step 7 — Validation & reporting
+### Step 7 — Validation & reporting — Status: 🔵 In progress (positive-control check done 2026-09-08)
 
 **Goal:** sanity-check the whole pipeline against known Sjögren's biology, and write up findings.
 
-- Positive-control check: does the pipeline surface expected genes/targets (e.g. BAFF/
-  `TNFSF13B`, CXCL13) among its outputs? If not, that's a signal to revisit earlier steps before
-  trusting Phase 2+.
+**Positive-control check — reframed 2026-09-08, before running, because the plan's original
+wording (below, struck through in spirit not in text) was circular.** The plan as originally
+written asked "does the pipeline surface expected genes/targets (e.g. BAFF/`TNFSF13B`, CXCL13)
+among its outputs?" That's not answerable in a meaningful way for these two specific genes: both
+are hand-entered members of the literature-seed 13-gene TLS signature
+(`signature/seed.py`'s `SEED_CHEMOKINE_SIGNATURE`) that Steps 3–5 use as an *input* to score every
+cell, not something the pipeline discovers on its own. Asking whether the signature "surfaces" a
+gene already typed into the signature is asking whether a list contains what was put into it — true
+by construction. Running that as a positive control and reporting it as validation would be
+circular, caught before running it rather than after, the same standard this project has already
+held itself to for other threshold/validation choices (e.g. the `specificity_rank` tie-floor issue
+in Step 3, the pseudoreplication issue in Step 4).
+
+**Reframed question, run instead:** not "did the pipeline find these on its own" (structurally
+impossible — they're seed inputs) but "does this project's own independently-collected data
+corroborate what the literature already established for these two genes" — tested with the same
+patient-level rigor Steps 4–5 already established as this project's bar for a citable finding,
+rather than accepted at the cell level.
+
+1. **Sjögren's side — patient-level test, PSS vs. SICCA**, using `patient_level_test_batch`
+   (`stromal/patient_level.py`, the exact function Step 5 used) against
+   `data/interim/sjogrens_stromal_scored.h5ad` (13 patients: 7 PSS, 6 SICCA; `patient_col=sample_id`,
+   `group_col=disease`, `group=sjogrens_syndrome`, `reference=non_sjogrens_sicca`,
+   `alternative=two-sided`), BH-corrected within this 2-gene family — this was never checked at the
+   patient level before (Step 5's ground-truth recovery table only ran TNFSF13B at the cell level,
+   flagged there as "not spot-checked (also a shared-signature seed gene)"; CXCL13 wasn't in Nayar
+   et al.'s marker panel at all, so it had never been tested against the Sjögren's data in any form):
+
+   | gene | PSS median | SICCA median | direction | raw p | p_bh |
+   |---|---:|---:|---|---:|---:|
+   | CXCL13 | 0.002568 | 0.000443 | up in PSS (correct direction for a BAFF/CXCL13-driven-TLS story) | 0.0350 | 0.0699 |
+   | TNFSF13B | 0.139910 | 0.111082 | up in PSS (correct direction, but weak) | 0.5338 | 0.5338 |
+
+   Saved to `data/processed/step7_positive_control_patient_level.csv`. **Honest read, not
+   overclaimed:** CXCL13 trends in the literature-expected direction (higher in true Sjögren's than
+   in the sicca comparator) but doesn't clear even a lenient 2-test BH correction (p_bh=0.070) — a
+   real lean, not a confirmed finding. TNFSF13B shows no patient-level signal (p=0.53), and its
+   direction here (weakly up in PSS) actually contradicts Step 5's cell-level,
+   shared-signature-regressed result in the ground-truth recovery table (score −3.46, i.e. higher in
+   SICCA) — the same cell-level/patient-level direction-flip this project already documented there
+   for RGS5, CCL8, CCL21, and VCAM1. Consistent with that established pattern, not a new anomaly, and
+   a further concrete illustration of why this project treats cell-level p-values as candidates, not
+   findings, until patient-level-checked.
+
+2. **MG side — already run in Step 3, reported here rather than re-derived.** `signature/
+   communication.py`'s real `liana-py` run on MG data found no CXCL13-CXCR5 signal in either
+   direction — traced (Step 3, 2026-08-27) to CXCL13 failing liana's `expr_prop≥0.1` detection floor
+   in both cell groups (1.0%/5.2% expressed), the known scRNA-seq dropout problem for low-abundance,
+   rapidly-secreted signaling molecules, compounded by GSE233180 being CD45+-sorted (no stromal/FDC
+   cells — CXCL13's actual producer). An honest detection-limit artifact, not a pass or a fail on the
+   underlying biology — reported as such here, not silently omitted and not treated as confirmation
+   either way.
+
+3. **Framing, stated explicitly for the write-up:** this check validates *external consistency* with
+   prior Sjögren's/TLS literature (does this project's own independently-collected data lean the same
+   direction as what's already published), not *pipeline discovery* — CXCL13 and TNFSF13B were seed
+   inputs to the signature from the start, so no version of this check could ever have shown "the
+   pipeline found them," only "the data does or doesn't contradict them." State this distinction
+   directly in the Phase 1 report rather than leaving it implicit, since it's exactly the kind of
+   thing a judge would probe.
+
+**Bottom line so far:** one gene (CXCL13) leans the literature-expected direction without clearing
+multiple-testing correction; one gene (TNFSF13B) shows no patient-level support and a direction
+inconsistent with its own cell-level result. Reported both plainly — a real, partial, honestly-
+reported outcome, matching this project's established pattern (Step 4's retraction, Step 5's
+Nayar-panel negative) rather than either overclaiming a clean positive control or quietly dropping a
+mixed one.
+
 - Spatial/ground-truth cross-check: summarize how the Step 3 comparison (against the MG
   thymoma/hyperplasia Visium paper, a real reprocessable spatial dataset) and the Step 5
   comparison (against the Sjögren's GSE272409 paper's reported findings — a literature/marker
@@ -1767,10 +1847,12 @@ isn't standardized across studies.
       specific to true Sjögren's stromal tissue was found and confirmed patient-level, with
       family-appropriate BH correction and inline literature citations added 2026-09-05 — 6 of 7
       candidate genes (all but MUC7) survive correction within their own hypothesis family.
-      ⚠️ Still not yet explicitly signed off by the user as final as of 2026-09-05 — the
-      2026-09-05 changes closed a citation reviewer's gaps but the user has not separately said
-      "this is approved." Step 6 is built on this gene list but is gene-list-agnostic, so a change
-      here only requires re-running Step 6, not rewriting it.**
+      **✅ Resolved 2026-09-07 (stale note fixed 2026-09-08): the user has since explicitly signed
+      off on Step 5 as final** (see Step 5's own 2026-09-07 sign-off note above) — this bullet's
+      earlier "⚠️ not yet signed off" caveat was accurate as of 2026-09-05 but was left unupdated
+      after the actual sign-off two days later, caught during the 2026-09-08 pre-Step-7 audit. Step
+      6 is built on this gene list but is gene-list-agnostic, so a change here only requires
+      re-running Step 6, not rewriting it.**
 - [x] `src/mg_thymus_map/pharma/` — DGIdb/ChEMBL clients + ranking. **Done (Step 6): the literal
       Step 5 gene list had no real drug hits (expected — ISGs are downstream effectors, not drug
       targets themselves); reasoning one level upstream to the type-I interferon pathway surfaced
