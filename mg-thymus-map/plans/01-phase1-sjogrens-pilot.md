@@ -82,9 +82,13 @@ risky. Sjögren's is a reasonable first target to pair with MG because:
 - [x] `README.md` documents how to set up the environment and run the Phase 1 pipeline
       end-to-end via `make phase1` (or equivalent). **Done in Phase 0**; will need a further update
       once Step 3+ stages are wired into `pipeline.py` (currently only loads/validates config).
-- [ ] A short written summary of Phase 1 findings exists (even if preliminary/negative) — a
-      pipeline that runs but finds no shared signal is still a valid, useful Phase 1 result. **Not
-      started** — depends on Steps 3–7.
+- [~] A short written summary of Phase 1 findings exists (even if preliminary/negative) — a
+      pipeline that runs but finds no shared signal is still a valid, useful Phase 1 result.
+      **Draft outline started 2026-09-08** at `mg-thymus-map/docs/phase1_findings.md` — pointer
+      bullets only (what was run, headline metric, stromal/drug list, positive-control result,
+      spatial cross-check summary, Limitations, process/audit notes), not yet expanded into full
+      prose. Depends on Step 7's remaining pieces (cross-check summary is drafted; Limitations
+      section drafted but not reviewed).
 
 ## 3a. Data-source compliance (ISEF Human Participants / Tissue rules) — checked 2026-08-31
 
