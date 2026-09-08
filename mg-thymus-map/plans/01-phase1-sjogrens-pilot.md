@@ -1856,7 +1856,18 @@ established pattern of not overclaiming a clean result nor discarding a mixed on
   not 50/50 — a real, substantial improvement over the original bug, but not perfect parity, worth
   stating plainly rather than letting "2/2 donors" imply otherwise. Judges at a fair (per question 4's
   resolution) reward intellectual honesty about a project's boundaries — this section is a rigor
-  signal, not a hedge to bury.
+  signal, not a hedge to bury. **Added 2026-09-08: the pipeline is not yet single-command
+  reproducible.** §3's stated design principle is "config-driven, not notebook-driven" — one
+  `make phase1` running the whole thing end-to-end. In practice, `pipeline.py` still only
+  loads/validates the config (Phase 0 status, unchanged since); Steps 3–7 were each run by calling
+  their tested functions directly in a terminal session, not through an orchestrator. Every stage's
+  logic is independently unit/integration-tested (150 tests, `make test` green) and reproducible
+  piece-by-piece from the saved intermediate files, but there is no single script that reruns the
+  full pipeline from raw data unattended. **Decision, made explicitly rather than left as an
+  oversight:** document this as a limitation now rather than build the orchestrator under fair-
+  deadline time pressure; revisit building it (wiring `pipeline.py` to actually call each stage in
+  sequence) only if Phases 2–4 (the RA/SLE/Graves' replications) finish with real time to spare
+  before 2026-09-30.
 
 ## 4a. Cutoffs used across the pipeline — referenced vs. adaptive, and why (added 2026-08-31)
 
