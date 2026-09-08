@@ -79,7 +79,7 @@ logic right) concentrated in one phase instead of six.
 |---|---|---|---|
 | 0 | Foundations & infra | — | Repo scaffold, env, data conventions, test harness (no biology yet) |
 | 1 | **MG vs. Sjögren's pilot** — 🔵 in progress, Steps 1–2 of 7 done (2026-08-27) | 0 | End-to-end pipeline proven on one disease pair — see [`01-phase1-sjogrens-pilot.md`](01-phase1-sjogrens-pilot.md) |
-| 2 | Extend → Rheumatoid Arthritis (synovium) | 1 | Pipeline replayed on RA; pipeline made disease-agnostic (config, not code, changes per disease) |
+| 2 | Extend → Rheumatoid Arthritis (synovium) — 🟡 draft plan started 2026-09-08, dataset not yet chosen | 1 | Pipeline replayed on RA; pipeline made disease-agnostic (config, not code, changes per disease) — see [`02-phase2-ra.md`](02-phase2-ra.md) |
 | 3 | Extend → SLE | 1–2 | Same, for SLE |
 | 4 | Extend → Graves' Disease (thyroid) | 1–2 | Same, for Graves' |
 | 5 | Full 5-disease integration + healthy tonsil control | 1–4 | Cross-disease comparison of "how much of each disease's TLS is MG-shared vs. private"; refined shared-architecture signature using all diseases jointly, not just MG→X pairwise. **Also the guaranteed fallback for MG-side stromal extraction (thymic epithelial cells)** if Phase 1 doesn't get to it as a stretch goal — required by the source doc's Aim 2, not optional; see [`01-phase1-sjogrens-pilot.md`](01-phase1-sjogrens-pilot.md) §7, question 7 |
