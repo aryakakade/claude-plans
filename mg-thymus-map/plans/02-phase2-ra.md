@@ -175,6 +175,15 @@ vs. fibrotic-type OA classification as its own `oa_subtype` obs column (via `aug
 OA patients as uniform replicates — matches the honest framing already in this doc's limitations
 section above.
 
+**Real download completed and the real loader run against it, 2026-09-09 — not just the synthetic
+test.** `download_oa_synovium.py` pulled all 12 real files (4 samples × 3 files) cleanly.
+`load_oa_synovium` against the real data: **32,856 cells, 36,601 genes** — sensible per-sample
+counts (GSM8655601/Infla1: 7,613; GSM8655602/Infla2: 10,901; GSM8655603/Fibro1: 9,042;
+GSM8655604/Fibro2: 5,300 — no zero-cell or corrupt samples), 18,514 inflammatory-type cells /
+14,342 fibrotic-type cells. No crashes, no format surprises — this one loaded clean on the first
+real run. RA's `count_matrix_filtered.mtx` (3.5 GB) is still downloading as of this note; will be
+confirmed against the real loader the same way once it lands.
+
 **RA loader (`ra_synovium.py`) — structurally different from every Phase 1 loader, confirmed by
 direct inspection before writing any code, not assumed to match the familiar per-sample-triplet
 shape.** E-MTAB-11791 is deposited as ONE pooled matrix (`count_matrix_filtered.mtx`, confirmed
