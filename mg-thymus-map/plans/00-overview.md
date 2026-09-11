@@ -7,12 +7,11 @@ Limitations section — see `docs/phase1_findings.md`). Phase 2 (RA) went throug
 batch-effect investigation, and honest-null-result saga across a single long session
 ("RA Batch-Effect Marathon," 2026-09-09 to 2026-09-11) — see
 [`02-phase2-ra.md`](02-phase2-ra.md). Phase 3 (lupus) has a dataset-search record only, no code —
-see [`03-phase3-lupus.md`](03-phase3-lupus.md). **Real, unresolved discrepancy found during this
-same audit, needs the user's confirmation, not guessed at:** §9 question 3 below states the
-submission deadline as **2026-09-30**; `02-phase2-ra.md` (written 2026-09-08, later) states it as
-**2026-10-03**. Not reconciled here — could be a genuine correction, or two different milestones
-(e.g. registration vs. final submission) that were never distinguished. Left as-is below until the
-user confirms which is real.
+see [`03-phase3-lupus.md`](03-phase3-lupus.md). **Deadline discrepancy flagged above, resolved by
+the user 2026-09-11:** the real, hard submission deadline is **2026-10-03**; **2026-09-30** (§9
+question 3 below had actually called this the "hard deadline," which was itself wrong — now
+corrected there too) is the user's own working target/buffer to finish substantive work by, not a
+second real deadline.
 Source material: [`docs/project-introduction.txt`](../docs/project-introduction.txt) (extracted from the original PDF), by Arya Kakade — *"A Thymus-Anchored Map of Tertiary Lymphoid Structures Across Multiple Autoimmune Diseases."*
 
 ---
@@ -240,12 +239,18 @@ Phase 1's are in [`01-phase1-sjogrens-pilot.md`](01-phase1-sjogrens-pilot.md), s
    documented exception for that one package, not a switch of the whole project's package
    manager.
 
-3. **Timeline/deadline** — Status: **Resolved**
+3. **Timeline/deadline** — Status: **Resolved, corrected again 2026-09-11**
    Is there a deadline this needs to hit (e.g. a science fair, symposium, or course deadline)? This
    affects how much time Phase 0 infra work should take before biology work starts.
-   **Resolution:** Hard deadline — submission to the IRIS National Fair (India) by **2026-09-30**,
-   ~34 days out from this plan (corrected from an initially-stated 2026-09-15, which was a
-   self-imposed buffer rather than the real deadline). With the corrected timeline, Phase 1 proceeds
+   **Resolution, as it actually stands:** the real, hard submission deadline for the IRIS National
+   Fair (India) is **2026-10-03**. **2026-09-30** (this section's number as of 2026-08-27, called
+   a "hard deadline" below at the time) is the user's own working target/buffer to have substantive
+   work finished by — not a second real deadline, and not what this section originally said it was.
+   Real history of this specific number, so it doesn't get re-litigated a third time: an initial
+   2026-09-15 buffer was corrected to 2026-09-30 as the stated "hard deadline" on 2026-08-27; that
+   was itself wrong about which date is hard vs. buffer, caught and corrected 2026-09-11 once the
+   real Oct 3 deadline was confirmed directly with the user. With the real deadline in view, Phase 1
+   proceeded
    at full rigor as detailed in §§3–7 of
    [`01-phase1-sjogrens-pilot.md`](01-phase1-sjogrens-pilot.md) — proper Phase 0 infra, full spatial
    validation (not the lightweight fallback), and full test coverage, not a stripped-down MVP. See
