@@ -1,8 +1,18 @@
 # MG Thymus Map — Overall Project Plan
 
-Status: **In progress.** Phase 0 and Phase 1 Steps 1–2 are implemented and verified against real
-data as of 2026-08-27 — see [`01-phase1-sjogrens-pilot.md`](01-phase1-sjogrens-pilot.md) for
-detailed implementation notes, real bugs found/fixed, and results.
+Status: **In progress — stale since 2026-08-27, corrected here 2026-09-11.** This line and the
+roadmap table below still said "Phase 1 Steps 1–2 done" as if Phase 1 had just started — Phase 1
+is actually **complete and audited** (Steps 1–7, real headline finding, real retraction, real
+Limitations section — see `docs/phase1_findings.md`). Phase 2 (RA) went through a full pivot,
+batch-effect investigation, and honest-null-result saga across a single long session
+("RA Batch-Effect Marathon," 2026-09-09 to 2026-09-11) — see
+[`02-phase2-ra.md`](02-phase2-ra.md). Phase 3 (lupus) has a dataset-search record only, no code —
+see [`03-phase3-lupus.md`](03-phase3-lupus.md). **Real, unresolved discrepancy found during this
+same audit, needs the user's confirmation, not guessed at:** §9 question 3 below states the
+submission deadline as **2026-09-30**; `02-phase2-ra.md` (written 2026-09-08, later) states it as
+**2026-10-03**. Not reconciled here — could be a genuine correction, or two different milestones
+(e.g. registration vs. final submission) that were never distinguished. Left as-is below until the
+user confirms which is real.
 Source material: [`docs/project-introduction.txt`](../docs/project-introduction.txt) (extracted from the original PDF), by Arya Kakade — *"A Thymus-Anchored Map of Tertiary Lymphoid Structures Across Multiple Autoimmune Diseases."*
 
 ---
@@ -78,9 +88,9 @@ logic right) concentrated in one phase instead of six.
 | Phase | Focus | Depends on | Key deliverable |
 |---|---|---|---|
 | 0 | Foundations & infra | — | Repo scaffold, env, data conventions, test harness (no biology yet) |
-| 1 | **MG vs. Sjögren's pilot** — 🔵 in progress, Steps 1–2 of 7 done (2026-08-27) | 0 | End-to-end pipeline proven on one disease pair — see [`01-phase1-sjogrens-pilot.md`](01-phase1-sjogrens-pilot.md) |
-| 2 | Extend → Rheumatoid Arthritis (synovium) — 🟡 draft plan started 2026-09-08, dataset not yet chosen | 1 | Pipeline replayed on RA; pipeline made disease-agnostic (config, not code, changes per disease) — see [`02-phase2-ra.md`](02-phase2-ra.md) |
-| 3 | Extend → SLE | 1–2 | Same, for SLE |
+| 1 | **MG vs. Sjögren's pilot** — ✅ complete and audited (all 7 steps, 2026-08-27 to 2026-09-08) | 0 | Done — real headline finding (p=0.003), one honest retraction (PSS-vs-SICCA sub-claim), anifrolumab+JAK-inhibitor pharmacogenomic result. See [`01-phase1-sjogrens-pilot.md`](01-phase1-sjogrens-pilot.md) and `docs/phase1_findings.md` |
+| 2 | Extend → Rheumatoid Arthritis (synovium) — 🟡 substantively complete, one open item (§7 item 11) (2026-09-08 to 2026-09-11) | 1 | Pipeline replayed on RA. Real results: cross-disease projection did not replicate (honest negative), stromal marker extraction an honest null (likely underpowered), fibroblast-subtyping validation a real positive. See [`02-phase2-ra.md`](02-phase2-ra.md) |
+| 3 | Extend → SLE, concretely **Lupus Nephritis** (the renal manifestation with the best available single-cell data) — 🔵 dataset search only, no code yet (2026-09-11) | 1–2 | Real candidate dataset found (AMP-SLE atlas, Synapse `syn64064827`) but access tier unconfirmed; ImmPort SDY997 checked and ruled out. See [`03-phase3-lupus.md`](03-phase3-lupus.md) |
 | 4 | Extend → Graves' Disease (thyroid) | 1–2 | Same, for Graves' |
 | 5 | Full 5-disease integration + healthy tonsil control | 1–4 | Cross-disease comparison of "how much of each disease's TLS is MG-shared vs. private"; refined shared-architecture signature using all diseases jointly, not just MG→X pairwise. **Also the guaranteed fallback for MG-side stromal extraction (thymic epithelial cells)** if Phase 1 doesn't get to it as a stretch goal — required by the source doc's Aim 2, not optional; see [`01-phase1-sjogrens-pilot.md`](01-phase1-sjogrens-pilot.md) §7, question 7 |
 | 6 | Cross-disease pharmacogenomic mapping | 4–5 | Ranked, deduplicated candidate drug/target list across diseases, with provenance |
