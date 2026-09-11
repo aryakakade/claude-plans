@@ -1,16 +1,24 @@
 # Phase 2 Plan — Rheumatoid Arthritis (Synovium) Extension
 
-Status: **In progress.** Step 1 (data acquisition) is functionally complete as of 2026-09-09: both
-datasets fully downloaded (real files, not partial — RA's 3.75 GB matrix and all 4 OA samples) and
-confirmed loading correctly against the real data, not just synthetic fixtures — 102,758 real RA
-cells, 32,856 real OA cells, dimensions matching exactly what was predicted from the raw file
-headers before any code was written. 160 tests project-wide, `make test` green. This is still a
-living document meant to be argued with and edited, the same way Phase 1's plan doc was, not a
-finished spec. Sections marked **OPEN** need a real decision before the next step can start
-cleanly; everything else is a reasonable default carried over from Phase 1, subject to change.
-**One real blocker found while building Step 1, not yet resolved:** no per-sample RA-specific
-diagnosis is recoverable from the data's own machine-readable metadata — see the consolidated open
-questions at the end of this doc, item 1.
+Status: **In progress — dataset pivoted to AMP2, then reverted back, both 2026-09-09.**
+`E-MTAB-11791`/`GSE283080` (Kuo et al./Miyahara et al.) **is the dataset this phase uses** — the
+same conclusion as before the pivot, arrived at the long way. Briefly switched to the AMP RA/SLE
+Network Phase 2 dataset (Zhang et al. 2023, *Nature*, Synapse `syn52297840`) to escape the
+diagnosis-mapping blocker below, then reverted after direct checking found the specific files
+carrying per-sample diagnosis (`AMP-RA.SLE_clinical.csv`, `metadata_clin_donor_singlecell.xlsx`)
+sit behind a `ManagedACTAccessRequirement` — a Data Use Certificate + Intended Data Use statement,
+reviewed by Synapse's Access and Compliance Team — the same *class* of gate as dbGaP's DAC, just
+one layer deeper than the Dataset-collection-level check that first looked clean. Given no mishap
+tolerance, not worth trading a bounded problem (an unresolved diagnosis field) for an unbounded one
+(a discretionary human-review queue). **Final resolution: proceed on all 25 `E-MTAB-11791` samples
+labeled generically as "inflammatory arthritis vs. OA"** — the weaker of the two options from the
+original §7 item 2, chosen explicitly rather than defaulted into. Both the AMP2 detour and the
+original Kuo/Miyahara research are kept below in full (nothing deleted) — real work, real lessons,
+including two real access-tier findings (the E-MTAB-11791 diagnosis gap, and the AMP2 DUC/IDU gate)
+that are each worth remembering if this decision is ever revisited. This is still a living document
+meant to be argued with and edited, the same way Phase 1's plan doc was, not a finished spec.
+Sections marked **OPEN** need a real decision before the next step can start cleanly; everything
+else is a reasonable default carried over from Phase 1, subject to change.
 Parent plan: [`00-overview.md`](00-overview.md). Companion: [`01-phase1-sjogrens-pilot.md`](01-phase1-sjogrens-pilot.md),
 whose code and conventions this phase reuses wholesale.
 
@@ -48,14 +56,18 @@ reported — not assumed to be fine because Phase 1's code already handles it co
 
 ## 3. Definition of done for Phase 2
 
-- [~] An RA synovium scRNA-seq (or spatial) dataset is downloaded, documented, and loads cleanly.
-      **Fully downloaded and confirmed loading against real data as of 2026-09-09**
+- [x] An RA synovium scRNA-seq (or spatial) dataset is downloaded, documented, and loads cleanly.
+      **Settled 2026-09-09, after a same-day pivot-and-revert (see Step 1 for the full story):**
+      `E-MTAB-11791`/`GSE283080`, already fully downloaded and loading correctly
       (`load_ra_synovium`/`load_oa_synovium`, 102,758 real RA cells + 32,856 real OA cells, 10
-      passing tests) — but "RA" is currently 25 samples of mixed inflammatory arthritis, not a
-      confirmed RA-only subset (see the open questions). **ISEF-compliance check not yet done** —
-      needs the same explicit two-exemption check §3a of the Phase 1 doc ran for every other
-      dataset (both sources here are public/open, so it's expected to pass, but hasn't been
-      formally checked and written down yet).
+      passing tests). **Explicit decision on the diagnosis question:** proceed on all 25 samples
+      labeled generically as "inflammatory arthritis vs. OA," not the true 15-RA subset — a
+      considered trade-off (see former §7 item 2), not an oversight. **ISEF-compliance check done
+      and passed, 2026-09-09** — checked directly against the current Human Participants and Tissue
+      & Body Fluid rule text; both `E-MTAB-11791` and `GSE283080` are public/open-access with no
+      account, quiz, or DUC of any kind, the cleanest access tier this project has dealt with (see
+      Step 1 for the full write-up). Same standing caveat as Phase 1's §3a: this project's own
+      reading, not an official SRC ruling.
 - [ ] QC + normalization + annotation produces a labeled RA dataset on the same shared cell-type
       vocabulary as Phase 1 (CellTypist `Immune_All_High`, `majority_voting=True`).
 - [ ] The MG signature is AUCell-scored against RA, with the same tonsil-calibrated threshold logic
@@ -75,10 +87,85 @@ reported — not assumed to be fine because Phase 1's code already handles it co
 
 ## 4. Step-by-step plan
 
-### Step 1 — Data acquisition — Status: 🟡 Dataset chosen (2026-09-08), download/loader not yet built
+### Step 1 — Data acquisition — Status: ✅ Settled 2026-09-09 (pivot to AMP2, then reverted, same day)
 
 **Goal:** get one RA synovium dataset into the same loadable, documented state Phase 1's three
 datasets are in.
+
+**⏩ PIVOT then ⏪ REVERT, both 2026-09-09.** Switched away from `E-MTAB-11791` because its
+per-sample RA-vs-other-diagnosis blocker (originally §7 item 1) turned out to be a genuine dead end
+after real checking (Table S1/S2, main-text Table 1/Table 2, all read in full — none carry a
+per-sample diagnosis column). Moved to the AMP RA/SLE Network Phase 2 dataset instead — see the
+"AMP2 detour" block immediately below for the full record of that research, kept in full because it
+found something real: the specific files needed (the per-sample clinical/diagnosis data) sit behind
+a discretionary Data-Use-Certificate review, the same *class* of gate this project has consistently
+avoided elsewhere. Given the user's explicit zero-mishap-tolerance instruction, reverted back to
+`E-MTAB-11791`/`GSE283080` the same day rather than pursue that application. **Final decision: proceed
+on all 25 `E-MTAB-11791` samples labeled generically as "inflammatory arthritis vs. OA"** — resolving
+former §7 item 2 explicitly in favor of the weaker-but-immediately-usable option, a deliberate
+trade-off, not an oversight.
+
+---
+
+#### Historical record (explored and abandoned, 2026-09-09) — the AMP2 detour
+
+**New primary dataset + comparator briefly considered, in one deposit: AMP RA/SLE Network Phase 2**
+(Zhang et al. 2023, *Nature* 623:616–624, "Deconstruction of rheumatoid arthritis synovium defines
+inflammatory subtypes"; Synapse `syn52297840`). Checked directly against the paper and Synapse's
+own metadata API, not assumed: **82 samples / 79 donors, 314,011 cells**, whole-tissue synovial
+dissociation; every RA sample unambiguously RA by construction (stratified by treatment-response
+category, not mixed arthritis subtypes); **9 OA samples from the same study, same protocol**;
+CITE-seq (mRNA + 58 surface-protein ADT markers, only the mRNA side would have been used).
+
+**Access, first pass — checked against the Dataset-collection entity itself, genuinely clean:**
+`GET /entity/syn52297840/accessRequirement` and the same call on its parent project both returned
+`{"totalNumberOfResults":0,"results":[]}`; `GET .../permissions` (anonymous) showed
+`"canPublicRead": true`, `"isCertificationRequired": true` — reading only this far, it looked like
+the same light tier already accepted for ImmPort SDY998 (free account + self-service quiz, no DAC).
+**This first pass was real but incomplete** — it checked the Dataset collection record, not the
+specific files inside it.
+
+**Access, second pass — the real finding, 2026-09-09.** The user located the actual files needed
+(`AMP-RA.SLE_clinical.csv`, `metadata_clin_donor_singlecell.xlsx` — both under a path literally
+named "Controlled Access") and asked to verify that directly rather than take the folder name at
+face value. Checking `accessRequirement` on those two specific file IDs (`syn47136972`,
+`syn57405619`) directly returned a `ManagedACTAccessRequirement` ("Controlled AR - ARK Portal"):
+`"isDUCRequired": true`, `"isIDURequired": true`, one-year renewal — a **Data Use Certificate +
+Intended Data Use statement, reviewed by Synapse's Access and Compliance Team.** This is the same
+*class* of gate as dbGaP's Data Access Committee (discretionary human review, real turnaround
+time), just discovered one layer deeper than the first check reached — a genuine gap in that first
+pass, not a false alarm. **Real lesson for next time: check access requirements on the specific
+files actually needed, not just the collection/dataset entity that bundles them** — a container can
+look open while what's inside it isn't.
+
+**ISEF compliance, checked while this was still the leading option (kept for completeness, not
+acted on further):** published in *Nature* — satisfies both the Tissue & Body Fluid and Human
+Participants exemptions on the peer-reviewed-journal clause alone, same reasoning as Phase 1's §3a.
+This finding is orthogonal to the access-tier problem above and would still hold if this dataset is
+ever revisited.
+
+**Real technical requirement this dataset would have introduced, noted for the record:** its files
+are R serialized objects (`.rds`) per the analysis repo's README
+(`github.com/immunogenomics/RA_Atlas_CITEseq`) — `raw_mRNA_count_matrix.rds`,
+`fine_cluster_all_314011cells_82samples.rds`, `CTAP_donor_mapping.xlsx` — not the `.mtx`/`.h5ad`
+every other loader in this project reads directly. This project's environment has been Python-only
+so far; converting `.rds` would have needed R (`Matrix`/`Seurat`) as new infrastructure. Moot now,
+but worth remembering if any future dataset also turns out to be R-only.
+
+**Division-of-labor note, kept for the record:** the user explicitly asked that all Synapse
+browsing/downloading be done by them directly, not by this session, out of caution about automated
+access to a platform requiring account registration — checked Synapse's actual Terms of Use PDF
+directly and found no prohibition on scripted access (Sage Bionetworks ships official Python/R/CLI
+clients for exactly that), so this was the user's own preference, respected as such, not a
+compliance requirement. Moot now that AMP2 isn't being used, but the same principle (anonymous
+public-metadata checks are fine; anything needing login goes through the user) should carry forward
+to any future access-gated dataset this project considers.
+
+*(End of AMP2 detour.)*
+
+---
+
+#### Reinstated as the active dataset, 2026-09-09 (after the AMP2 detour above) — Kuo et al./Miyahara et al. research
 
 **What's confirmed so far (2026-09-08 session), checked directly, not assumed:**
 - The most famous RA-vs-OA synovium scRNA-seq study (Zhang et al. 2019, *Nature Immunology*, the
@@ -115,16 +202,52 @@ datasets are in.
   small/consent-blocked, wrong technology, fabricated search-summary detail — see below). This is
   exactly the kind of thing Phase 1 learned to expect and check for up front rather than assume
   away — real time was budgeted for this, not treated as a formality, and it paid off.
+- **Two more user-suggested candidates checked directly, 2026-09-09, after the dataset decision
+  below was already made — both ruled out, for the record:**
+  - **`GSE109248`** — not Stephenson et al. at all, despite the accession being suggested under that
+    name. Checked its real GEO metadata directly: *"Genome-wide analysis of gene expression of
+    cutaneous lupus and cutaneous psoriasis lesions"* — 56 skin biopsy samples, bulk microarray
+    (`Expression profiling by array`), lupus/psoriasis, not RA/OA. Wrong tissue, wrong technology,
+    wrong disease pairing on every axis. **The real Stephenson et al. 2018** (*Nat Commun* 9:791,
+    "Single-cell RNA-seq of rheumatoid arthritis synovial tissue using low-cost microfluidic
+    instrumentation") isn't on GEO at all — checked its actual Data Availability statement
+    directly (PMC5824814): *"RNA sequencing data... have been deposited in dbGaP with the
+    accession code phs001529.v1.p1"* — controlled-access, the same class of gate this project has
+    consistently avoided (and the same accession AMP2's own Data Availability statement cited for
+    Stephenson, during the now-reverted AMP2 detour above).
+  - **`GSE299518`** — real, genuinely open, no gate: *"Single cell RNA sequencing on synovium,
+    meniscus and cartilage of rheumatoid arthritis"* (*Nature Communications*, 2025,
+    PMID 40721606). But only **3 samples total, and only 1 is synovium** (the other two are
+    meniscus and cartilage from the same knee) — **no OA/comparator samples deposited in this
+    accession at all**. n=1 for the tissue this project needs means zero patient-level statistics
+    are possible — a hard disqualifier given this project's own standard (patient-level, not
+    cell-level, testing). **Not usable as a primary dataset.** Its headline finding — CD142+
+    synovial fibroblasts as a novel RA lining-layer subset — is specific and independent enough to
+    be worth keeping as a candidate for Step 5's ground-truth comparison or Step 7's
+    positive-control list (same role as Croft et al. 2019), just not as a data source. (One file in
+    its deposit, `AllCelltype_Reference_Seurat.RDS`, is R-format — moot here since the dataset
+    isn't being used, but the same `.rds` friction as the AMP2 detour if it's ever revisited.)
 
 **✅ RESOLVED, 2026-09-08 — dataset decision made.**
 
-**Primary dataset: `E-MTAB-11791`** (ArrayExpress; partial GEO mirror `GSE181082`) — Kuo et al.,
+**Primary dataset: `E-MTAB-11791`** (ArrayExpress) — Kuo et al.,
 "Molecular maps of synovial cells in inflammatory arthritis using an optimized synovial tissue
 dissociation protocol." 25 fresh synovial tissue biopsies, 23 patients, **~102,758 cells**, real
 10x Genomics Chromium (v3.0/v3.1), Cell Ranger v6.0.0, genuinely open access (no DAC). **Real
 per-diagnosis breakdown, checked directly (not the abstract-level summary): 15 RA, 3 psoriatic
 arthritis, 4 spondyloarthritis, 3 undifferentiated arthritis** — a genuinely solid RA sample size,
 larger than Sjögren's own 7 PSS patients. No OA/healthy arm in this study.
+
+**Correction, 2026-09-09: `GSE181082` is NOT a "partial GEO mirror" of this dataset, as this doc
+previously (and wrongly) stated.** Checked directly by downloading GSE181082's own GEO SOFT
+metadata (`GSE181082_family.soft`, via `ftp.ncbi.nlm.nih.gov`): it is an entirely different paper
+("MAFB surrogates the glucocorticoid receptor ability to induce tolerogenesis in dendritic cells,"
+same Zurich/Ospelt lab, overlapping co-authors) that reuses only **2 of Kuo et al.'s 23 patients**
+(patients 28 and 50 — `SB-028`/`SB-050` in Table S1's list), labeled by glucocorticoid-treatment
+status ("GCs" vs. "none"), not by arthritis diagnosis. Confirmed independently against the paper's
+own Data and Code Availability statement, which states plainly: "Subset of data (patients 28 and
+50) also in NCBI Gene Expression Omnibus: GSE181082." Not usable for the diagnosis-mapping
+question below, and should not have been cited as a mirror of the full 25-sample cohort.
 
 **Comparator: `GSE283080`** — Miyahara et al. 2025, *JCI Insight*, "CD34hi subset of synovial
 fibroblasts contributes to fibrotic phenotype of human knee osteoarthritis." **4 knee OA patients**
@@ -241,36 +364,211 @@ resolved by the loader's own `var_names_make_unique()` call immediately after, s
 loader in this project) — not a bug, not chased further.
 
 **Both real datasets are now fully downloaded, loaded, and confirmed working end-to-end against
-real data, not just synthetic fixtures.** Step 1 is functionally complete pending only the
-diagnosis-mapping blocker above.
+real data, not just synthetic fixtures.** Step 1 is complete. The diagnosis-mapping blocker above
+is real and still unresolved — the deliberate, explicit resolution (see the top of this section and
+former §7 item 2, now closed) is to proceed on all 25 samples labeled generically, not to treat this
+as blocking. `load_ra_synovium`'s current `disease: "inflammatory_arthritis"` label is therefore
+the correct label to build on, not a placeholder waiting to be replaced.
 
-### Step 2 — QC, normalization, annotation — Status: reused code, fresh data
+*(This dataset is the active plan — see the top of this section for the pivot-and-revert story.)*
 
-Same functions, same conventions (adaptive mito%, pooled doublet threshold, CellTypist +
-`majority_voting=True`, Harmony via direct `run_harmony()` call). New judgment call: audit whether
-CellTypist's broad `Fibroblasts` label is doing anything meaningful for RA's fibroblast-like
-synoviocytes (FLS) — Phase 1 found this workable for Sjögren's but never tested against a synovium
-context specifically.
+### Step 2 — QC, normalization, annotation — Status: ✅ Complete 2026-09-09 (batch-effect finding investigated and resolved)
+
+Same functions, same conventions as Phase 1 (adaptive mito%, pooled doublet threshold, CellTypist
+`Immune_All_High` + `majority_voting=True`, Harmony via direct `run_harmony()` call) — no
+RA-specific code, per `scripts/run_phase2_ra_step2.py`.
+
+**Real numbers, 2026-09-09:**
+- **RA:** 102,758 → 102,118 post-QC (adaptive mito threshold 30.40%) → 102,022 post-doublet-removal
+  (96 flagged, 0.09%).
+- **OA:** 32,856 → 29,046 post-QC (adaptive mito threshold 17.70%) → 28,041 post-doublet-removal
+  (1,005 flagged, 3.46% — notably higher doublet rate than RA; not yet investigated further).
+- **Cell types (CellTypist, majority_voting):** RA — 31% Macrophages, 30% Fibroblasts, 22% T cells,
+  9% Endothelial, plus Monocytes/DC/B/ILC/Mast/pDC/Plasma at lower shares. OA — 50% Macrophages,
+  37% Fibroblasts, 5% T cells, then DC/Plasma/Endothelial/B/ILC/Mast/Monocytes/pDC. **OA's much
+  higher macrophage share and much lower T-cell share than RA is flagged, not yet explained** — it
+  could be real OA biology (less lymphocytic infiltrate than RA, a textbook expectation) or an
+  artifact of the batch effect below; not resolvable from cell-type proportions alone.
+- Combined: 130,063 cells, 27,136 genes.
+
+**§7 item 5's predicted cross-study batch effect is confirmed real, investigated, and mostly
+explained — see §7 item 5 for the full cluster-by-cluster finding.** Pre-Harmony, most Leiden
+clusters were >95% one dataset. Post-Harmony, most improved substantially; the clusters that
+stayed skewed turned out to be mostly legitimate disease-biology/population-size differences (the
+same class of explanation Phase 1 accepted for its own batch effect), plus one negligible 27-cell
+technical artifact. **Deliberately no Harmony parameter tuning** — changing the shared integration
+code specifically for RA would have broken Objective 1's cross-disease code-consistency premise.
+Step 3/4 proceed on `data/interim/ra_oa_harmonized.h5ad` as-is.
+
+**Not yet done:** the CellTypist-fibroblast-granularity audit (§7 item 6) — still open, unaffected
+by the batch-effect finding above; both are real open items, not the same one.
 
 ### Step 3 — TLS signature — Status: not re-derived, reused as-is
 
 The 25-gene MG signature is not touched. Re-deriving it from RA would defeat the point.
 
-### Step 4 — Cross-disease projection — Status: reused code, fresh run
+### Step 4 — Cross-disease projection — Status: ✅ Run 2026-09-10 — real NEGATIVE result for RA, flagged for re-investigation after Step 7
 
-AUCell-score RA against the MG signature, same tonsil-calibrated threshold. **Apply patient-level
-testing to every claim before it is ever reported**, not as a retrofit — Phase 1 only adopted this
-discipline after item 5's retraction; Phase 2 should start with it.
+AUCell-scored RA and OA against the 25-gene MG signature (`data/processed/tls_signature.csv`),
+same tonsil-calibrated threshold logic as Phase 1 (`scripts/run_phase2_ra_step4.py`, reusing
+`signature/spatial_validation.py` and `scoring/cross_disease_projection.py` unmodified). Patient-
+level testing applied from the start, not retrofitted, per this section's original intent.
 
-### Step 5 — Stromal extraction — Status: reused code, real fresh research needed
+**All 25 genes present in RA, OA, and tonsil — no gene-dropout issue.** TLS-region cell counts
+(GC B cell/Tfh states): RA 1,140/102,022 (1.1%), OA 97/28,041 (0.35%), tonsil 1,778/38,072 (4.7%).
+Tonsil-calibrated threshold (50th percentile of tonsil TLS-region scores): 0.106942.
 
-RA vs. OA (or whatever comparator Step 1 lands on), regress out shared signature, rank markers,
-patient-level confirm. **Needs an RA-specific ground-truth paper** — the Nayar-et-al analog.
-Candidates to check: Zhang et al. 2019 itself (even if its raw data isn't usable, its *reported
-findings* may be, the same way Nayar et al.'s reported findings were used when GSE272409 had no
-spatial deposit), or newer work (a 2023 *Nature* paper on RA synovium inflammatory subtypes turned
-up in this session's search, not yet read in full). **Objective 2's comparison** (RA residual vs.
-Sjögren's ISG signature) happens here.
+**Headline result — RA does NOT replicate Sjögren's Phase 1 finding:**
+
+| Comparison | n | Median score | Tonsil reference median | p-value | BH | Status |
+|---|---|---|---|---|---|---|
+| RA TLS-region vs. tonsil | 1,140 | 0.0998 | 0.1069 | 0.9999 | 0.9999 | **not significant** |
+| OA TLS-region vs. tonsil | 97 | 0.1317 | 0.1069 | 0.00008 | 0.00016 | ~~confirmed~~ **superseded — see below** |
+
+**Correction, 2026-09-10 (§7 item 9): OA's "confirmed" row above does not survive patient-level
+testing** (p = 0.129 at the patient level, 4 OA patients vs. 4 tonsil donors, 70 exact
+permutations — `phase2_step4_oa_tonsil_patient_level_test.csv`) — the same cell-level cross-study
+artifact Step 5 independently found. **Neither RA nor OA shows genuine TLS-signature enrichment
+over tonsil.** The table above is kept as originally computed (not silently edited) with this
+correction stated explicitly alongside it.
+
+Only 42.0% of RA's TLS-region cells exceed the tonsil threshold (below the ~50% a group
+statistically identical to tonsil would show). Bootstrap CI for RA-vs-tonsil median difference:
+**−0.0072 [−0.0105, −0.0036]** — excludes zero, so this is a real shortfall, not underpowering.
+**Patient-level exact permutation test (the most rigorous test here, avoids pseudoreplication)
+confirms it**: 23 RA individuals vs. 4 tonsil donors, 17,550 exact permutations, observed diff
+−0.00077, **p = 0.625** — nowhere close to significant. RA vs. OA patient-level: p = 0.059 (not
+significant, but trending toward OA > RA).
+
+**One reassuring piece: specificity still holds.** Every one of the 25 RA samples and all 4 OA
+samples show TLS-region cells scoring higher than that same sample's own non-TLS-region cells (all
+"diff" values positive) — the signature is still meaningfully specific to TLS-organizing states
+within each tissue, RA just doesn't reach tonsil's absolute baseline the way Sjögren's PSS did in
+Phase 1 (69.1% exceeding threshold there, vs. RA's 42.0% here).
+
+**Leading hypothesis, not yet confirmed either way:** this is very likely connected to the standing
+decision (§7, former item 2) to proceed on all 25 mixed-diagnosis samples rather than the true
+15-RA subset — PsA/SpA/UA diluting a real RA-specific signal is at least as plausible as RA
+genuinely lacking shared TLS architecture with MG. **Deliberately not investigated further right
+now** — the user's explicit call, 2026-09-10: finish the full pipeline through Step 7 first on the
+current (all-25-samples) data, THEN circle back and check whether resolving the true RA-only subset
+changes this result, rather than context-switching mid-pipeline. See §7 item 11.
+
+**Anomaly flagged here — RESOLVED, see §7 item 9:** OA's apparent significant TLS-signature
+enrichment while RA did not was checked directly and found to be a cell-level cross-study artifact,
+not real — it does not survive patient-level testing (p=0.129). OA's cell-composition/doublet-rate
+anomaly (§7 item 10) remains open as separate, unresolved context.
+
+Full results: `data/processed/phase2_step4_cross_disease_results.csv`,
+`phase2_step4_headline_metric.csv`, `phase2_step4_specificity_patient_level.csv`,
+`phase2_step4_ra_tonsil_patient_level_test.csv`, `phase2_step4_ra_vs_oa_patient_level_test.csv`,
+`phase2_step4_ra_patient_level.csv`, `phase2_step4_oa_patient_level.csv`,
+`phase2_step4_oa_tonsil_patient_level_test.csv` (added 2026-09-10).
+
+### Step 5 — Stromal extraction — Status: 🟡 Real fix applied 2026-09-10, honest null result — no RA-specific marker survives, most likely underpowered not broken
+
+RA (all 25 samples, generically labeled) vs. OA (`GSE283080`, Step 1's reinstated cross-study
+comparator), regress out shared signature, rank markers, patient-level confirm. **Needs an
+RA-specific ground-truth paper** — the Nayar-et-al analog.
+
+**Method — reused Phase 1's code exactly** (`scripts/run_phase2_ra_step5.py`,
+`stromal/extraction.py` + `stromal/patient_level.py` unmodified). Restricted to stromal compartment
+(CellTypist `Fibroblasts`/`Endothelial cells` — RA: 40,271 cells [30,959 Fibroblasts + 9,312
+Endothelial]; OA: 10,794 cells [10,413 Fibroblasts + 381 Endothelial]; no `Epithelial cells` in
+either, expected for synovium). Regressed out each cell's Step-4 TLS-signature AUCell score from
+every gene (16,183 genes shared between RA/OA), then ranked RA-vs-OA markers on the residual
+(Wilcoxon). Patient-level confirmation used `individual` (23 unique) for RA and `sample_id` (4) for
+OA — the correct units, not the 25 RA samples/4 OA samples raw count, avoiding the exact
+pseudoreplication trap this project's own code was built to catch.
+
+**Headline: 15/15 top non-artifact candidate genes "confirmed" at patient level, BH-corrected
+(IGFBP7, TPM4, KLF6, EMP1, SPARC, VIM, MCL1, ACTN1, MARCKS, FOSB, DDX3X, LRRFIP1, SLC2A3, IRF1,
+NAMPT — all "up in RA").** Full ranked list: `data/processed/phase2_step5_stromal_markers.csv`.
+Patient-level results: `data/processed/phase2_step5_candidate_patient_level_bh.csv`.
+
+**🔴 Real red flag, caught before reporting this as a finding, not after — DO NOT TRUST THIS GENE
+LIST YET.** Checked the Mann-Whitney U statistics directly rather than just reading BH-significant
+as "confirmed": **10 of the 15 genes hit U = 92.0 exactly — the mathematical maximum possible U for
+n_ra=23 vs. n_oa=4 (23×4=92), meaning complete separation: every single RA individual's value
+exceeds every single OA patient's value, for 10 different genes simultaneously.** That is a far
+stronger and more uniform signal than real single-gene disease biology plausibly produces across
+independent genes, and OA's n=4 makes "complete separation" trivially easy to hit by any systematic
+non-biological group difference, not just a real large effect. Two converging reasons to suspect
+this is **not** RA-specific biology:
+1. **This regression only removed the Step 4 TLS-signature score — it did NOT re-apply Step 2's
+   Harmony batch correction**, which was confirmed real in Step 2 (§7 item 5's resolution). AUCell/
+   regression need full-gene un-corrected expression, so whatever cross-study technical difference
+   Harmony was correcting for in Step 2 is still fully present here, unaddressed, and could easily
+   present as "RA vs. OA" separation that's actually "Kuo-et-al-protocol vs. Miyahara-et-al-protocol."
+2. **The gene identities themselves look like a known technical confound, not disease biology.**
+   None of the 15 are canonical RA synovial fibroblast markers from the literature (THY1, CD34,
+   PRG4, FAP, PDPN — the field-standard panel). Several — especially **FOSB**, an immediate-early
+   gene — are specifically documented in the single-cell literature as **dissociation-protocol
+   stress-response artifacts** (van den Brink et al. 2017, *Nat Methods*, flagged FOS/FOSB/JUN/EGR1
+   as exactly this). This project's own `TECHNICAL_ARTIFACT_PREFIXES` filter (written for this
+   script, not Phase 1's original — that flagging pass was never committed, see the script's own
+   docstring) only caught Ig/Hb/MT/RP gene families and **missed this entire class** of
+   dissociation-stress artifact, which is precisely the kind of confound a cross-study,
+   cross-protocol RA/OA pairing (§7 item 5) would produce.
+
+**All three next steps above are now done, 2026-09-10 — full resolution below.**
+
+**Attempt 2 (superseded): cell-level ComBat.** `scripts/run_phase2_ra_step5_combat.py` — extended
+artifact filter to the immediate-early/stress family, applied ComBat at the cell level before
+ranking. **0/15 original genes survived — strong confirmation the original list was pure batch
+artifact.** But the replacement list was itself untrustworthy: ComBat logged "34 genes with zero
+variance" and promoted biologically implausible near-zero-expression genes (an olfactory receptor,
+pancreatic elastase). Root cause understood, not chased further: ComBat assumes roughly-Gaussian
+per-gene batch effects, which breaks on sparse single-cell data.
+
+**Attempt 3 (the real fix): pseudobulk selection + pseudobulk ComBat.**
+`scripts/run_phase2_ra_step5_pseudobulk.py`. Validated the approach first against data already
+trusted — see §7 item 12's Sjögren's-reproduction check, which confirmed the underlying
+patient-level Mann-Whitney math exactly reproduces Phase 1's own PIP/LYZ numbers, and clarified
+that *selection* (not confirmation) needed to move to pseudobulk, not the whole design. Then
+applied to RA/OA: aggregated to one residual-expression profile per patient (27 total: 23 RA
+individuals + 4 OA patients) over 8,816 non-artifact genes expressed in ≥10% of cells, ComBat-
+corrected that dense pseudobulk matrix (well-behaved here, unlike cell-level — no zero-variance
+warnings), selected a 15-gene shortlist by |pseudobulk median difference| (PRG4, CLU, CFD, IGFBP5,
+MT2A, CRIP1, COL1A1, THBS4, PLA2G2A, TIMP3, MT1X, CRTAC1, DCN, TMEM196, HLA-B — note **PRG4 is a
+real Zhang-et-al-2019/Croft-et-al-2019 ground-truth lining-fibroblast marker**, a genuinely
+promising sign this selection stage is finding real biology, not artifact), then ran patient-level
+Mann-Whitney confirmation restricted to just that shortlist (BH-corrected across 15, not 8,816).
+
+**Result: 0/15 confirmed — but this time it looks like an honest null, not a broken method.**
+U-statistics spread reasonably (27–51 out of a possible 0–92 range) — no more suspicious complete
+separation. Raw p-values before correction: 0.22–0.92, nowhere near nominal significance even
+uncorrected. **Most likely explanation: a genuine power problem, not absence of any RA-specific
+signal** — n_oa=4 patients gives very coarse Mann-Whitney resolution regardless of true effect
+size, compounded by RA's own still-unresolved mixed-diagnosis dilution (§7 item 11). **This
+strengthens the case for revisiting both the RA-only subset question and, potentially, finding an
+OA comparator with more than 4 patients**, rather than treating this null as RA lacking a
+detectable disease-specific stromal signature. Full results:
+`data/processed/phase2_step5_pseudobulk_selection_ranking.csv`,
+`phase2_step5_pseudobulk_candidate_patient_level_bh.csv`.
+
+**Historical record, not deleted:** the original cell-level result and the failed cell-level-ComBat
+attempt are preserved above and in `phase2_step5_stromal_markers.csv` /
+`phase2_step5_stromal_markers_combat.csv` — real work, real lessons (the exact-maximum-U-statistic
+diagnostic and the ComBat-sparsity lesson are both reusable knowledge for any future cross-study
+comparison this project attempts), just not the trustworthy result.
+
+**Back to the original constraint, now that the AMP2 detour is reverted:** Kuo et al.'s own
+`E-MTAB-11791` findings can't be the ground-truth comparison either, for the same circularity
+reason AMP2's own paper couldn't — it's literally the data being analyzed. Real independent
+candidates:
+- **Zhang et al. 2019** (AMP RA/SLE Phase 1, *Nature Immunology* — its raw data was already ruled
+  out above as too small/FACS-sorted for use as a *data source*, but its *reported findings* are
+  still usable as ground truth, the same way Nayar et al.'s reported findings were used when
+  GSE272409 had no spatial deposit) — a genuinely separate cohort from `E-MTAB-11791`.
+- **Croft et al. 2019, *Nature*** ("Distinct fibroblast subsets drive inflammation and damage in
+  arthritis") — a synovial fibroblast-subtyping paper found during this session's dataset search,
+  not yet read in full or checked for cohort independence from `E-MTAB-11791`/`GSE283080`.
+- Kuo et al.'s own paper can still serve as a *first sanity cross-check* (it's literally the same
+  data, so agreement is expected and weak evidence, but stark disagreement would be a real red
+  flag worth investigating) — just not as the primary independent ground truth.
+
+**Objective 2's comparison** (RA residual vs. Sjögren's ISG signature) happens here.
 
 ### Step 6 — Pharmacogenomic mapping — Status: reused code
 
@@ -308,68 +606,284 @@ don't let it go stale the way Phase 1's status banners did (caught and fixed 202
 
 | Risk | Mitigation |
 |---|---|
-| No clean GEO-hosted RA-vs-OA whole-tissue droplet dataset actually exists at the quality Phase 1 had | Step 1 must be allowed to fail fast and pivot (e.g., to a different comparator, or RA-only with a different reference) rather than force-fit a bad dataset to protect the schedule |
+| No clean GEO-hosted RA-vs-OA whole-tissue droplet dataset actually exists at the quality Phase 1 had | **Materialized as `E-MTAB-11791`'s diagnosis-mapping gap.** Step 1 did try to fail fast and pivot (2026-09-09, to AMP2) but the pivot target had its own real access gate (a Data Use Certificate review) — reverted same day. **Final mitigation: accept the weaker "inflammatory arthritis vs. OA" claim rather than keep chasing a perfectly clean dataset** — stated plainly in the findings write-up's Limitations, not glossed over |
 | Two-new-diseases-at-once time pressure degrades statistical rigor on either RA or lupus | The Sep 12–13 checkpoint (§5) exists specifically to catch this before it happens, not after |
 | CellTypist's generic immune model doesn't meaningfully resolve RA's fibroblast-like synoviocyte subtypes | Flagged explicitly in Step 2 as something to check, not assume; Step 5's Leiden-subclustering rescue approach (already built, reusable) is the fallback if the broad label proves too coarse |
+| Cross-study RA/OA batch effect isn't fully corrected by Harmony (§7 item 5) | **Materialized, then resolved, 2026-09-09** — investigated the residual (same method Phase 1 used for its own batch effect); mostly explained by legitimate population-size/disease-biology differences, one negligible-scale (27-cell) technical artifact. No Harmony tuning applied — deliberately kept the exact same code as Phase 1 to preserve cross-disease comparability |
+| A dataset's *collection*-level access check can look clean while specific files inside it are gated (the real lesson from the AMP2 detour, §7 item 8) | Check `accessRequirement` on the specific files actually needed, not just the container entity, before treating any future dataset's access tier as settled |
 
 ## 7. Open questions for Phase 2 (consolidated, ordered by urgency)
 
-**1. RA-specific per-sample diagnosis — Status: 🔴 OPEN, blocks everything past Step 1, most urgent
-item in this whole document.**
-`E-MTAB-11791`'s machine-readable metadata (the SDRF file) does not distinguish RA from psoriatic
-arthritis/spondylarthritis/undifferentiated arthritis at the per-sample level — checked directly,
-confirmed uniformly `"arthritis"` for all 25 samples. The paper's Table 2 gives the aggregate split
-(15 RA/3/4/3) but not the individual-to-diagnosis mapping. That mapping is almost certainly in a
-supplementary table (Table S1/S2) that automated fetching couldn't reach this session (ScienceDirect
-403'd a direct fetch; guessed PMC binary paths 404'd). **Concrete next action, needs the user:**
-open the paper directly in a browser (`doi.org/10.1016/j.isci.2024.109707`, iScience/Cell Press,
-genuinely open-access — the 403 was very likely a bot-blocking measure, not a real paywall) and
-pull Table S1/S2, or email the corresponding author if the browser also can't reach it. Until this
-resolves, `load_ra_synovium` labels every cell the honest generic `"inflammatory_arthritis"`, and
-Step 2 onward has a real decision to make (see item 2 below).
+**1. RA-specific per-sample diagnosis — Status: ✅ RESOLVED 2026-09-09, by decision (item 2), not by
+recovering the mapping.**
+`E-MTAB-11791`'s per-sample diagnosis genuinely isn't recoverable from any public source checked
+(SDRF, Table S1/S2, main-text Table 1/2 — all read directly). A same-day pivot to the AMP RA/SLE
+Phase 2 dataset (Zhang et al. 2023) — where every RA sample is unambiguously RA by construction —
+was reverted after finding its own diagnosis-bearing files gated behind a Data-Use-Certificate
+review (see Step 1's "AMP2 detour"). **Resolved by explicit decision, not by ever finding the
+mapping**: proceed on all 25 samples labeled generically (item 2). The two leads below are kept as
+a record, in case anyone wants the true RA-only subset later — not currently being pursued:
+1. Lead contact Mojca Frank Bertoncelj, `frankbertoncelj@bio.mx` (paper's own designated channel for
+   this exact request) — email drafted 2026-09-09, not sent, low priority now that the phase
+   doesn't depend on a reply.
+2. Two GitLab analysis-code repos (`gitlab.uzh.ch/retogerber/{synovialscrnaseq,protocol_synovial}`)
+   were unreachable this session (connection timeout, not 403/404) — not pursued further.
 
-**2. Proceed now on all 25 samples, or wait for the RA-only subset? — Status: 🔴 OPEN, decision
-needed regardless of how item 1 resolves.**
-Two real options, not obviously the same answer: (a) run Step 2+ now on all 25 samples labeled
-generically as "inflammatory arthritis vs. OA" — gets moving immediately, but is a measurably
-weaker, less precise claim than "RA vs. OA" (PsA/SpA/UA are biologically distinct diseases, not RA
-subtypes, mixing them dilutes any RA-specific signal); or (b) wait until item 1 resolves, then run
-on the true 15-RA subset only — the scientifically cleaner claim, matching what the plan's
-Objectives actually promise, but blocks all downstream progress on item 1's timeline. **No
-recommendation locked in yet — this needs the user's call**, ideally informed by how quickly item 1
-looks resolvable.
+**2. Proceed now on all 25 samples, or wait for the RA-only subset? — Status: ✅ RESOLVED 2026-09-09.**
+**Decision: proceed now on all 25 samples**, labeled generically as "inflammatory arthritis vs. OA."
+Made explicitly after the AMP2 detour (a real attempt to get the cleaner "wait" option without the
+time cost) ran into its own access gate. Accepted trade-off, not a default: PsA/SpA/UA dilute any
+RA-specific signal, so this phase's claims are weaker than "RA vs. OA" — this should be stated
+plainly in the eventual findings write-up's Limitations section, not glossed over.
 
-**3. RA ground-truth paper — Status: 🟡 OPEN, candidates identified, not yet read in full.**
-Zhang et al. 2019's reported CTAP findings (data inaccessible for direct reprocessing, but usable
-as reported findings the way Nayar et al. was for Sjögren's), and/or Kuo et al.'s own E-MTAB-11791
-paper's reported cell-state findings (natural first cross-check, since it's literally the same
-data). Needs the same direct full read Nayar et al. got before being cited as ground truth.
+**3. RA ground-truth paper — Status: ✅ DONE 2026-09-10 — both papers actually read (real fetches,
+not recalled), real marker gene panels extracted, and successfully applied (see §7 item 6).**
+Kuo et al.'s own findings remain circular (same data being analyzed), so not used. Two genuinely
+independent papers read in full and verified:
+- **Zhang et al. 2019**, *Nat Immunol* (PMC6602051, DOI 10.1038/s41590-019-0378-1) — real
+  cohort/data independent of `E-MTAB-11791`/`GSE283080`. Four fibroblast subtypes with real,
+  extracted marker genes: **SC-F1** (CD34+ sublining): CD34. **SC-F2** (HLA-DRAhi sublining):
+  HLA-DRA, IFI30, IL6, CXCL12. **SC-F3** (DKK3+ sublining): DKK3, CADM1, COL8A2. **SC-F4** (CD55+
+  lining): CD55, PRG4 — plus HBEGF/CLIC5/HTRA4/DNASE1L3 reported by the paper itself as higher in
+  OA than leukocyte-rich RA within this same lining population, a directly relevant cross-check.
+- **Croft et al. 2019**, *Nature* 570:246–251 (PMC6690841) — mouse single-cell data (F1–F5
+  fibroblast clusters) explicitly validated against human sorted populations in the same paper.
+  THY1 discriminates sublining (F1–F4, THY1+: PDPN, FAP, THY1) from lining (F5, THY1−: PDPN, FAP,
+  PRG4, CLIC5, TSPAN15).
 
-**4. ISEF compliance check for the two new datasets — Status: 🟡 OPEN, expected to pass, not yet
-formally done.**
-Phase 1's plan doc has a dedicated §3a explicitly checking every dataset against Society for
-Science's Human Participants and Tissue & Body Fluid exemptions, with direct citations to the rule
-text. `E-MTAB-11791` and `GSE283080` are both public/open-access, so this is expected to clear
-easily, but it hasn't been formally written up the way §3a does for Phase 1's four datasets — worth
-doing before treating Step 1 as fully closed out, not just assumed fine because the data downloaded
-without a login wall.
+**Applied successfully, 2026-09-10:** used both papers' real marker panels to score RA's own
+stromal subclusters (§7 item 6) — 24/28 subclusters clearly matched a specific published substate.
+This is the actual ground-truth comparison this item always needed, done with real data now, not
+deferred further.
 
-**5. Cross-study batch effect, RA vs. OA — Status: 🟡 OPEN, can't be checked until Step 2 runs.**
-Flagged as a real risk in §4 Step 1 and the risk table — different institutions/cohorts (Kuo et
-al.'s European/multi-site cohort vs. Miyahara et al.'s University of Tokyo cohort), despite both
-using 10x Chromium. Phase 1's own batch-effect check (cluster by dataset-of-origin before and after
-Harmony) is the reusable tool for this — apply it here before trusting any RA-vs-OA comparison, not
-after.
+**4. ISEF compliance check for `E-MTAB-11791`/`GSE283080` — Status: ✅ DONE 2026-09-09.**
+Checked directly against the current Human Participants and Tissue & Body Fluid rule text (same
+framework as Phase 1's §3a, and the same rule text checked for AMP2 during the detour). Both
+datasets are public/open-access — no account, no quiz, no DUC/DAC of any kind, the cleanest access
+tier of any dataset this project has used. Clears both exemptions on the publicly-available-database
+clause alone (and, incidentally, `E-MTAB-11791` also clears on the peer-reviewed-journal clause,
+same as AMP2 did). Standing caveat, same as Phase 1's §3a: this project's own reading of the rule
+text, not an official SRC ruling — worth a direct mentor/SRC confirmation before treating as final.
 
-**6. CellTypist fit for RA's fibroblast-like synoviocytes — Status: 🟡 OPEN, can't be checked until
-Step 2 runs.**
-Flagged in §4 Step 2 and the risk table. Phase 1's own Leiden-subclustering rescue approach
-(`stromal/subtyping.py`, already built and reusable) is the fallback if `Immune_All_High`'s broad
-`Fibroblasts` label proves too coarse for RA's specific FLS subtypes.
+**5. Cross-study batch effect, RA vs. OA — Status: ✅ RESOLVED 2026-09-09 — investigated, mostly
+explained, no code change.** Checked directly via `compute_cluster_composition` before and after
+Harmony, then investigated what the still-skewed post-Harmony clusters actually contain (cell
+type, sample-level breakdown, OA subtype) — the same diagnostic Phase 1 used for its own batch
+effect (`docs/phase1_full_story.md`, Step 2), not a new method invented for RA.
+
+**Deliberately did NOT tune Harmony's parameters (`theta`, etc.) to force tighter mixing** — doing
+that specifically for RA would break Objective 1's core premise ("replay the full pipeline...
+using Phase 1's code unmodified"), turning a cross-disease comparison into a per-disease-tuned one.
+Flagged explicitly by the user before any investigation started.
+
+**Findings, cluster by cluster (of the ones that stayed skewed post-Harmony):**
+- **Cluster 24** (673 cells, 63% OA, ~88% Plasma cells): OA has ~8× RA's plasma-cell proportion
+  (1.5% vs 0.17% of each dataset). **Same phenomenon as Phase 1's own accepted precedent**
+  ("Sjögren's has ~100× more plasma cells than MG") — a real population-size difference between
+  diseases, not a batch artifact.
+- **Clusters 3, 7, 23** (10,611 / 7,444 / 724 cells, Fibroblast- or Macrophage-dominated,
+  54–61% OA): each spread across **many samples from both RA and OA**, not dominated by one or two
+  samples — the signature of real disease-associated biology (an OA-enriched cell state), not an
+  uncorrected technical effect.
+- **Cluster 31** (170 cells, 169 OA/1 RA, Macrophages): spread across **all 4** OA samples — a
+  small but plausible real OA-specific macrophage state.
+- **Cluster 33** (27 cells, all OA): **81% from one single sample** (`GSM8655602_Infla2`) — this
+  one genuinely does look like a technical/sample-specific artifact. Small enough (0.02% of all
+  cells) to be irrelevant to any downstream analysis; noted, not chased further.
+
+**Conclusion:** the residual batch effect is mostly legitimate cross-disease biology plus one
+negligible-scale artifact, matching Phase 1's own experience closely enough that no special
+handling is needed. Proceed to Step 3/4 on `data/interim/ra_oa_harmonized.h5ad` as-is.
+
+**6. CellTypist fit for RA's fibroblast-like synoviocytes — Status: ✅ RESOLVED 2026-09-10 — the
+label WAS too coarse, and subclustering recovers real, literature-matched substructure.**
+Checked directly (`scripts/run_phase2_ra_fibroblast_subtyping.py`): Leiden-subclustered RA's
+stromal compartment (40,271 cells → 28 subclusters, `stromal/subtyping.py`'s reusable machinery,
+unmodified — the same tool built for Phase 1's Nayar-et-al check) and scored each subcluster
+against real published RA fibroblast marker sets (Zhang et al. 2019's four subtypes SC-F1
+CD34+/SC-F2 HLA-DRAhi/SC-F3 DKK3+/SC-F4 CD55+, and Croft et al. 2019's THY1+/− lining-sublining
+axis — genes verified directly against both papers' real text, not recalled from memory, see §7
+item 3's ground-truth citations). **24 of 28 subclusters (86%) clearly matched a specific
+published substate** (outlier gap ≥ 0.1): 7 clusters → SC-F1 (CD34+ sublining), 4 → SC-F2
+(HLA-DRAhi sublining), 3 → SC-F3 (DKK3+ sublining), 8 → SC-F4 (CD55+ lining), 1 → Croft's
+THY1+ sublining, 1 → Croft's THY1− lining; only 4 unassigned. **Real, clean finding, no
+cross-study batch-effect confound at all** (this is entirely within RA's own data, no OA/tonsil
+comparison involved) — `Immune_All_High`'s broad `Fibroblasts` label was genuinely hiding
+literature-recognizable RA fibroblast heterogeneity, exactly as Phase 1's risk table anticipated.
+Full results: `data/processed/phase2_fibroblast_subcluster_marker_scores.csv`,
+`phase2_fibroblast_subcluster_dominant_substate.csv`.
 
 **7. Lupus nephritis timing — Status: 🟡 OPEN, gated on RA's real pace.**
 Real deadline context: submission 2026-10-03, but the user's exams start 2026-10-01 (five exams,
 four of five prepped as of 2026-09-08) — true project cutoff is closer to ~Sep 27–28, not the
 literal submission date (see §5). Decision point ~Sep 12–13, once RA's actual pace past Step 1 is
-known — item 1 above (a real, unplanned research blocker hit on Day 1 of Phase 2) is itself a data
-point for that checkpoint, worth remembering when it comes.
+known — the 2026-09-09 pivot-then-revert (a second real, unplanned research detour, this one
+resolved same-day) is itself a data point for that checkpoint, worth remembering when it comes.
+
+**8. AMP2 acquisition mechanics — Status: ✅ CLOSED 2026-09-09 (abandoned, not completed).**
+Was open while AMP2 was the leading option; moot now that Step 1 reverted to `E-MTAB-11791`/
+`GSE283080`. Kept here, not deleted, as the record of why: the specific files needed
+(`AMP-RA.SLE_clinical.csv`, `metadata_clin_donor_singlecell.xlsx`) turned out to require a
+`ManagedACTAccessRequirement` (Data Use Certificate + Intended Data Use statement, reviewed by
+Synapse's Access and Compliance Team) — see Step 1's "AMP2 detour" for the full finding. Worth
+revisiting only if this phase's approach changes again.
+
+**9. OA's "significant" TLS-signature enrichment vs. tonsil — Status: ✅ RESOLVED 2026-09-10, was a
+cell-level artifact, not real.** Original flag: OA TLS-region cells (n=97) scored significantly
+higher than tonsil's reference at the cell level (p=0.00008, BH p=0.00016) while RA's 1,140
+TLS-region cells did not (p=0.9999) — backwards from what Objective 2 predicts, and never accepted
+at face value.
+
+**Checked directly, 2026-09-10** (`scripts/run_phase2_ra_step4_oa_tonsil_patient_level.py`):
+applied the same rigorous patient-level exact permutation test RA already got (4 OA patients vs.
+4 tonsil donors, 70 exact permutations — RA's own analogous test used 23 individuals vs. 4 donors,
+17,550 permutations). **Result: observed diff +0.0188, p = 0.129 — not significant.** The
+cell-level "confirmed" result does not survive patient-level scrutiny, exactly the same failure
+mode Step 5 (§7 item 12) independently found in a completely different analysis. **Real
+conclusion: neither RA nor OA shows genuine TLS-signature enrichment over tonsil once tested
+properly — the "backwards" asymmetry was never a real biological surprise, it was two different
+analyses hitting the same cell-level cross-study artifact.** This also means Step 4's headline
+cross-disease table (`phase2_step4_cross_disease_results.csv`) should be read as: OA's "confirmed"
+row is superseded by this patient-level test and should not be cited as a positive finding.
+
+**10. OA's cell composition and doublet rate are both anomalous relative to RA — Status: 🟡 OPEN,
+partially diagnosed 2026-09-10, root cause understood for the doublet half, cell-composition half
+still unexplained.**
+
+**Doublet-rate half — checked directly, real finding.** Inspected RA and OA's Scrublet score
+distributions and pooled thresholds directly (not just the flagged rates): RA's pooled threshold
+(0.3908) sits far out past its own real-cell 99th percentile (0.1609) — the KDE valley-finding
+landed near the extreme tail rather than a genuine bimodal split. OA's threshold (0.1956) sits
+between its 95th/99th percentiles (0.1468/0.3283) — a normal-looking fit. **5 of RA's 25 samples
+got zero flagged doublets at all** — the same class of failure `doublets.py`'s own docstring
+documents Phase 1 hitting once already (6/12 MG samples, fixed by switching to the pooled-threshold
+method) — recurring here through the pooled method itself, not the per-sample method it replaced.
+**Deliberately not silently patched with an RA-specific parameter tweak** — same principle as the
+Harmony-tuning question earlier in this project: changing a QC knob specifically because RA's
+result looks inconvenient would be exactly the kind of per-disease cherry-picking this project
+avoids. Documented as a known, real QC limitation instead. Practical impact is likely small
+(probably a few hundred to low-thousands of missed doublets out of 102,022 cells) relative to the
+much larger cross-study batch effect already dominating Steps 4–5's problems, but it's a real,
+stated limitation for the eventual write-up, not swept away.
+
+**Cell-composition half — still open.** OA's cell-type mix differs sharply from RA's: 49.7%
+Macrophages / 5.4% T cells (OA) vs. 30.9% Macrophages / 21.6% T cells (RA). Whether this reflects
+real OA biology (plausible — OA is less classically an adaptive-immune/TLS disease than RA) or
+residual cross-study technical difference remains unresolved. No longer directly relevant to
+item 9 (now resolved — see above), but still relevant to interpreting Step 2's cell-type-proportion
+numbers honestly.
+
+**11. Does resolving the RA-only subset change Step 4's (and later steps') results? — Status: 🔴
+OPEN, deliberately deferred, explicit user decision 2026-09-10.** The current negative RA-vs-tonsil
+result (item above) is most plausibly explained by the all-25-mixed-diagnosis-samples decision
+(§7's former item 2) diluting a real RA-specific signal — but this is a hypothesis, not confirmed.
+**Explicit decision: finish Steps 5–7 first on the current data, then circle back and check whether
+narrowing to the true RA-only subset (if the diagnosis mapping ever resolves — see the dormant
+email-to-Kuo-et-al.-corresponding-author lead, formerly §7 item 1) changes any of the downstream
+findings**, rather than context-switching mid-pipeline now. This item is the anchor to come back to
+— don't let it go stale the way other status banners in this project have (already caught and fixed
+twice, 2026-08-31 and 2026-09-08).
+
+**12. Step 5's 15-gene RA-vs-OA marker list is likely contaminated by the uncorrected cross-study
+batch effect — Status: ✅ RESOLVED 2026-09-10 — real fix applied, honest null result, see Step 5
+for the full pseudobulk write-up.** Same root cause as items 9/10, now showing up a third time, in a
+different analysis. Original evidence: 10 of 15 "confirmed" genes hit the mathematically maximum
+possible Mann-Whitney U statistic (complete separation, 23 RA individuals vs. 4 OA patients); the
+list contained no canonical RA fibroblast markers (THY1/CD34/PRG4/FAP/PDPN) but did contain FOSB, a
+documented dissociation-protocol stress-response artifact gene (van den Brink et al. 2017,
+*Nat Methods*).
+
+**Tested directly, 2026-09-10 (`scripts/run_phase2_ra_step5_combat.py`): applied ComBat batch
+correction (`batch_key='dataset'`) to expression before the TLS-score regression, plus an extended
+artifact filter covering the FOS/JUN/EGR1/HSP immediate-early gene family.** Result:
+**0 of the original 15 genes survive — complete turnover, the strongest possible confirmation that
+the original list was pure batch artifact, not RA biology.**
+
+**But the replacement list is itself untrustworthy, a new and separate problem.** ComBat logged
+"Found 34 genes with zero variance," and its new top-20 genes (CELA1, OR2C3, TCN1, CALCR, AQP6,
+SHISA9, ...) have no plausible connection to synovial biology, near-zero expression values
+(~1e-6–1e-4), and none reach significance at patient level either (p 0.06–1.0). **Root cause,
+understood, not a bug to chase further: ComBat assumes roughly-Gaussian per-gene batch effects, an
+assumption that breaks on sparse single-cell data** — it manufactures apparent signal out of
+correction noise on near-zero-count genes rather than correcting real ones. This is a known,
+documented limitation of ComBat specifically for scRNA-seq, not something wrong with this
+pairing's data.
+
+**Resolution, 2026-09-10: pseudobulk selection + pseudobulk ComBat built and run.** First validated
+against trusted data (the Sjögren's-reproduction check below in this item's history — confirmed the
+patient-level math exactly reproduces Phase 1's own PIP/LYZ numbers), then applied to RA/OA: 0/15
+shortlisted genes confirmed, but this time with U-statistics spread reasonably (27–51 of a possible
+0–92) and raw p-values 0.22–0.92 — an honest null, not the artifact signature (exact-maximum U,
+implausible gene identities) both earlier attempts showed. **Most likely a genuine power problem**
+(n_oa=4 patients) compounded by RA's mixed-diagnosis dilution, not evidence RA lacks a real
+disease-specific stromal signature. See Step 5 above for the full write-up and file list.
+**Do not carry any of the three gene lists (original, cell-level-ComBat, or the pseudobulk
+shortlist) into Step 6 as a confirmed finding** — none reached a trustworthy positive result;
+Step 6 needs to either wait for a cleaner RA-only subset (§7 item 11) or proceed with this
+honestly-null Step 5 result disclosed as a limitation.
+
+---
+
+## Extra analysis (2026-09-11, explicitly NOT a Step 5 substitute): intra-RA lining vs. sublining fibroblasts
+
+**Why this exists, and why it's kept separate from Step 5 above.** After Step 5's honest null, a
+mentor-proposed pivot suggested comparing "pathogenic" vs. "bystander" RA fibroblast subclusters
+within RA only, sidestepping OA's n=4 entirely. Reviewed directly before building anything: the
+"pathogenic vs. bystander" framing wasn't supported by the literature as stated (conflated two
+papers' independent axes, asserted pathogenicity from marker identity alone), and the proposed
+`groupby='leiden_subcluster'` + `rank_genes_groups` implementation would have been cell-level, not
+patient-level — reintroducing pseudoreplication this project has already fixed twice. **Explicit
+user decision, 2026-09-11: keep Step 5's RA-vs-OA result as the primary, plan-consistent finding;
+build this as a clearly-labeled additional analysis answering a different question (a druggable
+target within RA), not a replacement.** Objective 3 (RA residual vs. Sjögren's ISG signature) still
+needs an actual RA-vs-comparator residual, which this analysis does not produce.
+
+**Design, built to avoid the specific problems found above:**
+1. **Lining vs. sublining, not pathogenic vs. bystander** — anchored to Croft et al. 2019's real
+   functional evidence (adoptive-transfer experiments: THY1− lining fibroblasts selectively
+   mediate bone/cartilage damage; THY1+ sublining fibroblasts drive inflammation), not asserted.
+   Lining group = clusters matching `zhang_SC_F4_CD55_lining` or `croft_lining_THY1neg` (§7 item 6's
+   subtyping). Sublining group = `zhang_SC_F1/F2/F3` or `croft_sublining_THY1pos`. Unassigned
+   clusters excluded.
+2. **Paired, not unpaired, test.** Every RA patient can contribute both lining and sublining
+   cells — a real paired design (Wilcoxon signed-rank on per-patient group means), more powerful
+   than an unpaired test at the same n, and structurally immune to the OA-comparator power problem
+   since OA is never involved.
+3. **No cell-level pre-screen** — tests every sufficiently-expressed gene directly at the paired
+   patient level, BH-corrected across all of them, rather than shortlisting via `rank_genes_groups`
+   first (the exact step that was circular in the mentor's original proposal).
+
+**Result: 23/23 RA individuals qualified** (≥10 cells in both groups — the full cohort, no
+exclusions). **5,610 of 8,889 tested genes significant after BH correction.** Marker-panel sanity
+check (genes used to define lining/sublining, excluded from the candidate list) matched the
+literature cleanly: PDPN/FAP/PRG4/COL8A2/CD55/THY1/TSPAN15/CLIC5 up in lining; IL6/CXCL12/CADM1/
+HLA-DRA/CD34 up in sublining (DKK3 was a minor, small-magnitude exception — Zhang describes it as
+sublining, here it's marginally higher in lining, 0.255 vs. 0.204).
+
+**Real second circularity check, run before trusting the count — this is genuinely different from
+the mentor's proposal's cell-level circularity, and only partially mitigated by it:** the
+lining/sublining *grouping itself* came from Leiden clustering on 2,000 HVGs computed from this
+same expression data — so even without cell-level `rank_genes_groups`, testing genes correlated
+with those same HVGs against clusters built from them is still not fully independent.
+- Of the 5,610 significant genes, 613 were literally in the 2,000-gene HVG set used for
+  clustering — removed.
+- Of the remaining 4,997, many top hits were ribosomal genes (RPL30, RPS28, RPS20, RPL7, RPL36) —
+  **the same technical-artifact family already filtered in every Step 5 script, but omitted from
+  this new script's first draft.** Caught and fixed: extended the same `TECHNICAL_ARTIFACT_PREFIXES`
+  filter here. 90 more genes removed.
+- **Result after both filters: 4,907 genes still significant.** This is not itself evidence of a
+  remaining artifact — lining and sublining are genuinely, robustly distinct fibroblast programs
+  (independently established by Croft/Zhang), so a large, real transcriptional difference between
+  them, with strong within-patient consistency (n=23/23), is biologically plausible, not
+  suspicious the way the RA-vs-OA maximum-U pattern was.
+
+**Honest conclusion: BH-significance alone is no longer a selective filter here — 4,907 genes is
+too many to treat as a discrete "druggable target list."** This validates that the pipeline
+correctly recovers a real, strong, literature-consistent biological axis (useful on its own), but
+**picking actual drug-target candidates needs a stronger secondary filter — effect size, exclusion
+from any HVG set used anywhere in this pipeline, and/or actual DGIdb/ChEMBL druggability (Step 6)
+as the real differentiator — not p-value ranking, which is saturated.** Not yet done.
+
+Full results: `data/processed/phase2_intra_ra_lining_vs_sublining.csv` (all 8,889 genes tested),
+`phase2_intra_ra_lining_vs_sublining_non_hvg.csv` (HVG-filtered), `..._clean.csv` (HVG- and
+artifact-filtered, the 4,907). Script: `scripts/run_phase2_ra_intra_lining_sublining.py`.
