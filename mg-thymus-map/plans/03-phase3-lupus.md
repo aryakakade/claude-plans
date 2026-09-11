@@ -1,5 +1,9 @@
 # Phase 3 Plan — Lupus Nephritis Extension
 
+**Session: "RA Batch-Effect Marathon"** (`claude.ai/code/session_01UaUH4B9As1iwjy8Yt9YpWF`, Claude
+Sonnet 5, 2026-09-11) — same session as Phase 2's dataset-search work; see `02-phase2-ra.md`'s
+header for the full session scope.
+
 Status: **Not started — dataset search only, 2026-09-11.** No code has been written for Phase 3.
 This document exists because real, substantive dataset research was done tonight (prompted by the
 user asking whether to freeze Phase 2 and pivot to Phase 3), and per this project's own convention

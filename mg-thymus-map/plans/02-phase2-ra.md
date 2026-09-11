@@ -1,5 +1,12 @@
 # Phase 2 Plan — Rheumatoid Arthritis (Synovium) Extension
 
+**Session: "RA Batch-Effect Marathon"** (2026-09-09 to 2026-09-11,
+`claude.ai/code/session_01UaUH4B9As1iwjy8Yt9YpWF`, Claude Sonnet 5) — everything from the Step 1
+AMP2 pivot-and-revert through the Step 4/5 batch-effect saga, the fibroblast-subtyping finding, the
+intra-RA lining-vs-sublining extra analysis, and the Phase 3 dataset search was done in this one
+session. Named here so a future session (any model) picking this back up can identify which
+session's work this is, especially across a model switch.
+
 Status: **In progress — dataset pivoted to AMP2, then reverted back, both 2026-09-09.**
 `E-MTAB-11791`/`GSE283080` (Kuo et al./Miyahara et al.) **is the dataset this phase uses** — the
 same conclusion as before the pivot, arrived at the long way. Briefly switched to the AMP RA/SLE
@@ -534,6 +541,12 @@ MT2A, CRIP1, COL1A1, THBS4, PLA2G2A, TIMP3, MT1X, CRTAC1, DCN, TMEM196, HLA-B �
 real Zhang-et-al-2019/Croft-et-al-2019 ground-truth lining-fibroblast marker**, a genuinely
 promising sign this selection stage is finding real biology, not artifact), then ran patient-level
 Mann-Whitney confirmation restricted to just that shortlist (BH-corrected across 15, not 8,816).
+**Real bug hit and fixed along the way:** the first run crashed with `ValueError: 'patient_id' is
+both an index level and a column label, which is ambiguous` — the pseudobulk DataFrame's index had
+inherited the name `"patient_id"` from the earlier `groupby("patient_id")` call in
+`build_pseudobulk`, colliding with a column of the same name when constructing the shortlist
+AnnData's `obs`. Fixed by using a fresh, unnamed `pd.Index` for that `obs` DataFrame instead of
+reusing the named index directly; re-run clean.
 
 **Result: 0/15 confirmed — but this time it looks like an honest null, not a broken method.**
 U-statistics spread reasonably (27–51 out of a possible 0–92 range) — no more suspicious complete
@@ -737,7 +750,12 @@ at face value.
 **Checked directly, 2026-09-10** (`scripts/run_phase2_ra_step4_oa_tonsil_patient_level.py`):
 applied the same rigorous patient-level exact permutation test RA already got (4 OA patients vs.
 4 tonsil donors, 70 exact permutations — RA's own analogous test used 23 individuals vs. 4 donors,
-17,550 permutations). **Result: observed diff +0.0188, p = 0.129 — not significant.** The
+17,550 permutations). **Real bug hit and fixed along the way, stated plainly:** the first run
+crashed with `KeyError: 'is_gc_b_cell'` — the script never ran the GC-B-cell/Tfh cell-state scoring
+(`score_cell_state`/`call_cell_state` against `GC_B_CELL_MARKERS`/`TFH_MARKERS`) on OA before
+calling `label_tls_region_cells`, which needs those columns already present. Fixed by adding the
+same two scoring calls used for RA, re-run clean. **Result: observed diff +0.0188, p = 0.129 — not
+significant.** The
 cell-level "confirmed" result does not survive patient-level scrutiny, exactly the same failure
 mode Step 5 (§7 item 12) independently found in a completely different analysis. **Real
 conclusion: neither RA nor OA shows genuine TLS-signature enrichment over tonsil once tested
