@@ -3,9 +3,25 @@
 **Session: "RA Batch-Effect Marathon"** (2026-09-09 to 2026-09-11,
 `claude.ai/code/session_01UaUH4B9As1iwjy8Yt9YpWF`, Claude Sonnet 5) — everything from the Step 1
 AMP2 pivot-and-revert through the Step 4/5 batch-effect saga, the fibroblast-subtyping finding, the
-intra-RA lining-vs-sublining extra analysis, and the Phase 3 dataset search was done in this one
-session. Named here so a future session (any model) picking this back up can identify which
-session's work this is, especially across a model switch.
+intra-RA lining-vs-sublining extra analysis, its own Step 6 pharma narrowing (2026-09-11, see end of
+§4 Step 6 subsection), and the Phase 3 dataset search was done in this one session. Named here so a
+future session (any model) picking this back up can identify which session's work this is,
+especially across a model switch.
+
+**2026-09-11, later same session — third-disease search closed out.** After Phase 3's lupus
+candidates (below) and, in a separate check this same night, Graves' disease, Hashimoto's
+thyroiditis, IBD/Crohn's (SCP2959 — user personally checked, found it "requires organization email
+etc."), and primary biliary cholangitis (CRA017680 — genuinely open but only 4 raw-BAM sequencing
+runs vs. ~15 samples described in the source paper, and raw reads only, no processed matrix) were
+each checked and ruled out, the user set a hard constraint: **genuinely open, zero-registration
+data only — no DUC, no institutional email, no sign-in — because this is an ISEF submission and
+extra forms aren't worth the risk.** Given six disease areas checked and all six either
+scientifically insufficient or access-gated in some way, explicit recommendation given to the user:
+stop the third-disease search and spend remaining time tightening Phase 1 (Sjögren's, confirmed)
+and Phase 2 (RA, honest null + the intra-RA fibroblast/pharma finding above) rather than rushing a
+third disease with a data-quality asterisk. **Not yet a final decision** — user has since raised
+one more candidate (Smillie et al. 2019 ulcerative colitis atlas), being checked in a forked
+sub-session; see `00-overview.md`'s session log for the outcome once that fork reports back.
 
 Status: **In progress — dataset pivoted to AMP2, then reverted back, both 2026-09-09.**
 `E-MTAB-11791`/`GSE283080` (Kuo et al./Miyahara et al.) **is the dataset this phase uses** — the
@@ -905,3 +921,55 @@ as the real differentiator — not p-value ranking, which is saturated.** Not ye
 Full results: `data/processed/phase2_intra_ra_lining_vs_sublining.csv` (all 8,889 genes tested),
 `phase2_intra_ra_lining_vs_sublining_non_hvg.csv` (HVG-filtered), `..._clean.csv` (HVG- and
 artifact-filtered, the 4,907). Script: `scripts/run_phase2_ra_intra_lining_sublining.py`.
+
+### Step 6 for this extra analysis — DGIdb/ChEMBL narrowing — Status: ✅ Run 2026-09-11
+
+**Narrowing method.** All 4,907 clean candidates are already BH-significant (n=23 gives real
+power) — p-value has no discriminating power left among them, same problem flagged above. Used
+effect size instead: `log2((lining_median + 0.01) / (sublining_median + 0.01))`, distribution
+inspected (range 0.006–3.5, long right tail), threshold set at `|log2fc| > 2` (≥4-fold
+per-patient-mean difference) — 68 / 4,907 genes clear it. Queried DGIdb (one batched GraphQL call)
+and ChEMBL (per-gene target→mechanism→molecule chain) for all 68, same `pharma/` module and
+`combine_and_rank` Phase 1's Step 6 used.
+
+**Result: 14 / 68 genes had any DGIdb/ChEMBL hit at all (54 had none — expected, most human genes
+have no listed drug). Only 2 gene-drug pairs are FDA-approved (max_phase = 4).** Most of the
+79 raw pairs found are noise, not real candidates — endogenous ligands DGIdb catalogs for receptor
+genes (C5AR2's own ligand C5a; FZD4's ligand Norrin), uncharacterized research compounds (NB23-BI,
+BAY-069, FZM1), or literal carbohydrates DGIdb lists as galectin-binding partners (LGALS9 →
+"lactose, anhydrous") — not therapeutics. Filtering to what's actually a real drug:
+
+- **MAPK11 (p38β MAPK), up in sublining (log2fc −3.19, lining median 0.007 vs. sublining 0.145)**
+  — hits regorafenib (FDA-approved, max_phase 4, multi-kinase inhibitor incl. p38β), losmapimod
+  (max_phase 3, selective p38 inhibitor), RWJ-67657 (max_phase 1). Mechanistically coherent —
+  p38 MAPK is textbook RA synovial-fibroblast inflammatory signaling — **but flagged honestly**:
+  losmapimod and other selective p38 inhibitors have a real history of *failing* RA trials
+  (tested for RA in the 2000s–2010s, discontinued for lack of efficacy/tolerability; losmapimod's
+  later approvals pursued COPD/cardiovascular, not RA) — worth stating in any write-up as a known
+  caveat, not just listing the hit.
+- **LRRC32 (GARP), up in sublining (log2fc −3.02)** — hits livmoniplimab, a clinical-stage
+  anti-GARP:TGFβ1 antibody. Plausible: GARP-presented latent TGFβ activation fits sublining
+  fibroblasts' known inflammatory/TGFβ-driven program.
+- **CD79B, up in sublining (log2fc −2.66) — flagged as a likely contamination artifact, not a
+  fibroblast finding.** Its one approved-drug hit (polatuzumab vedotin) is an anti-CD79b
+  antibody-drug conjugate for B-cell lymphoma — but CD79B is a B-cell-receptor signaling
+  component with no established fibroblast biology. RA sublining tissue is exactly where ectopic
+  lymphoid aggregates/TLS form (the whole basis of this project), so CD79B turning up "in
+  sublining fibroblasts" most plausibly reflects ambient RNA / spatial contamination from
+  genuinely adjacent B cells, not fibroblast-intrinsic expression — same category of risk as the
+  IGKC/IGHG immunoglobulin artifacts already filtered out of Step 5, just not caught by the
+  RPS/RPL/IG prefix filter since CD79B doesn't match those prefixes. **Do not present this as a
+  drug-repurposing finding.**
+- **Lining side produced no clean approved-drug hits** — its two hits (ADGRG2 → NB23-BI, SIX3 →
+  BAY-069) are uncharacterized probe compounds, and PDGFC → sunitinib is a broad multi-target
+  kinase inhibitor (VEGFR/PDGFR), not a targeted mechanism.
+
+**Bottom line: one real, defensible repurposing candidate for the sublining/inflammatory program
+(MAPK11/p38β, with the trial-history caveat stated up front) plus one plausible secondary
+(LRRC32/GARP); nothing clean for the lining/destructive program.** This is a much smaller, more
+honest result than the raw 79-pair table would suggest — reporting the full table without this
+filtering would overstate the finding.
+
+Full results: `data/processed/phase2_intra_ra_step6_dgidb_raw.csv`,
+`phase2_intra_ra_step6_chembl_raw.csv`, `phase2_intra_ra_step6_ranked.csv`. Script:
+`scripts/run_phase2_ra_intra_step6_pharma.py`.

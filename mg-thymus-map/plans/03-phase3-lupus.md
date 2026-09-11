@@ -83,6 +83,36 @@ in that paper) — checked back to the actual originating atlas paper, not used 
     was publicly viewable with the gate only on specific child files; this is gated at the
     container level from the start).
 
+## 2b. 2026-09-11, later same night — closed out against the new open-access constraint
+
+After the user personally checked SCP2959 (Kong et al. Crohn's atlas, Broad Single Cell Portal)
+and found it "requires organization email etc.", they set a firm, project-wide constraint: **only
+genuinely open, zero-registration data — no DUC, no institutional email, no sign-in — because this
+is an ISEF submission and extra forms aren't worth the risk.**
+
+Re-checked `syn64064827` against that bar specifically: **fails outright.** The anonymous
+`permissions` check above already found `canView: false, canPublicRead: false` — this is gated at
+the container level from the very first look, not a self-service form like AMP2's RA clinical
+files turned out to be. For a multi-consortium kidney-biopsy atlas at this scale, that pattern
+almost always means institutional sponsorship or a full DUC review, not a quick click-through.
+SDY997 was already ruled out on the merits (§2, Candidate 1) independent of this constraint.
+
+**Verdict: no viable open-access lupus dataset found as of 2026-09-11, despite genuine search.**
+Combined with five other disease areas checked the same night (RA's own diagnosis-mapping issues
+aside — Graves', Hashimoto's, Crohn's/IBD, primary biliary cholangitis — each either
+scientifically insufficient or gated in some way; full list in `02-phase2-ra.md`'s session header),
+explicit recommendation given to the user: **stop the third-disease search and spend remaining
+time tightening what's already real** (Phase 1 Sjögren's, confirmed; Phase 2 RA, honest null +
+the intra-RA fibroblast/pharma finding) rather than rushing a third disease with a data-quality
+asterisk under real deadline pressure. **Phase 3 lupus nephritis is, as of this note, not going
+forward** unless a genuinely open dataset surfaces that clears this bar cleanly on the first check.
+
+**Not fully closed**: the user raised one more disease candidate the same night (Smillie et al.
+2019 ulcerative colitis atlas) immediately after this recommendation was given — being checked in
+a forked sub-session started 2026-09-11. If it's genuinely open and sufficiently powered, it would
+supersede this section's "stop the search" recommendation for lupus specifically (UC would become
+the third disease, not lupus) — outcome not yet known at the time of this note.
+
 ## 3. Status and next step
 
 **Phase 3 is contingent, in order, on:**
