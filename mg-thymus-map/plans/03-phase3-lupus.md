@@ -113,6 +113,35 @@ a forked sub-session started 2026-09-11. If it's genuinely open and sufficiently
 supersede this section's "stop the search" recommendation for lupus specifically (UC would become
 the third disease, not lupus) — outcome not yet known at the time of this note.
 
+## 2c. 2026-09-11, same night — UC candidate checked, ruled out on two independent grounds
+
+Fork investigated the accession the user gave for this (`GSE114374`). Two separate problems found,
+neither assumed — both confirmed directly:
+
+1. **`GSE114374` is not the Smillie et al. paper at all.** It's Kinchen/Chen/Simmons et al. 2018
+   (*Cell*), a different colonic-mesenchyme study — only 2 UC + 2 healthy human patients (plus
+   mouse DSS-colitis samples), 10 samples total. **Same class of mistake as the earlier GSE181082
+   mix-up this session already caught** (an accession that sounds/looks right but is a different
+   paper) — worth remembering as a recurring failure mode when a dataset is named from memory
+   rather than looked up directly.
+2. **The real Smillie et al. 2019 paper (PMID 31348891, PMCID PMC6662628, *Cell*) has no GEO
+   deposit at all** — confirmed via PubMed→GEO cross-link (empty) and a direct GEO search (zero
+   hits). Its only home is the **Broad Single Cell Portal, `SCP259`**, confirmed live:
+   "Please sign in to download data." **This is the exact same access tier (Broad SCP sign-in)
+   the user already personally hit and rejected via SCP2959** ("requires organization email
+   etc.") — fails the open-access constraint outright, for the identical reason.
+
+**On the merits, moot given the gate, but worth recording**: the real dataset would have been
+strong — 366,650 cells, 18 UC + 12 healthy donors, inflamed/non-inflamed/healthy tissue, 8
+published fibroblast subtypes including WNT5B+ inflammation-associated fibroblasts (a real
+stromal-subtype ground truth, the same kind Zhang/Croft provided for RA). **Ruled out on access
+alone, not on scientific merit** — if the user's constraint ever relaxes, or a future collaborator
+already has SCP access, this is worth revisiting ahead of the other candidates checked tonight.
+
+**Verdict stands: no third disease found tonight that clears the open-access bar.** The §2b
+recommendation (stop the search, tighten Phase 1 + Phase 2) now applies without a pending
+exception.
+
 ## 3. Status and next step
 
 **Phase 3 is contingent, in order, on:**
