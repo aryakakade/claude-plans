@@ -598,8 +598,22 @@ literature, **both verified directly against the real abstracts, not a summary**
 (launched 2026-09-15) tests an a-priori canonical ISG panel — IFI6/IFI44L/XAF1 (Phase 1's own),
 ISG15, MX1, IFI27, IFI44, OAS1, IFIT1, IFIT3, RSAD2, STAT1 — with IFITM2/IFITM3 deliberately
 excluded (they are the discovery; re-testing them would be circular, Phase 1's Step 7 lesson),
-patient-level, one-sided UP (a genuine a-priori direction), BH within the family. Result pending
-as of this note.
+patient-level, one-sided UP (a genuine a-priori direction), BH within the family.
+
+**Step 7 result, 2026-09-15 — cleared, cleanly.** 17,920 fibroblasts (12 SSc / 10 control
+patients; count differs from Step 5's 21,021 per the documented Harmony-stochasticity effect on
+the correction). **10 of 12 a-priori ISGs clear BH correction; 11 of 12 point up in SSc; all
+three of Phase 1's own Sjögren's ISGs confirm** — IFI6 p_bh=0.004, ISG15 0.004, IFI27 0.004,
+IFI44 0.006, IFI44L 0.006, STAT1 0.006, XAF1 0.020, MX1 0.020, OAS1 0.036, IFIT3 0.036. IFIT1
+points the wrong way (p=0.80); RSAD2 near-zero in both arms (p=0.36). U-statistics 89-110 of a
+maximum 120 — not the complete-separation artifact RA's first Step 5 showed. Results:
+`data/processed/phase3_step7_isg_convergence_patient_level_bh.csv`.
+
+**Decision, made before the result and held**: SSc is now reportable as the second disease
+reaching Sjögren's drug set — *the same type-I-IFN target (anifrolumab / JAK inhibitors), reached
+through a disease-specific stromal residual, even though the TLS architecture did not transfer.*
+Aim 1 remains a clean negative and is reported as such. UC is now optional, not required for this
+goal; PF stays paused.
 
 **Aim 1 is unchanged by any of this: SSc's TLS-signature transfer remains a clean negative.** If
 Step 7 confirms the ISG component, the SSc story is "the same drug target reached through a
