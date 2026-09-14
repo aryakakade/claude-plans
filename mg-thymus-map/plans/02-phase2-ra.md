@@ -631,6 +631,23 @@ pressure cut statistical corners.
 **This section should be updated with the real decision once the Sep 12–13 checkpoint happens** —
 don't let it go stale the way Phase 1's status banners did (caught and fixed 2026-09-08).
 
+**2026-09-12 checkpoint, updated as promised above.** Today is the checkpoint date. Real state:
+**15–16 days of usable project time remain** before the ~Sep 27–28 cutoff (today is 2026-09-12;
+exams start 2026-10-01). RA's actual pace over Sep 9–12 is now a known data point for this
+checkpoint: Steps 1–6 plus the intra-RA extra analysis all ran in roughly 3.5 real days, including
+two full detours (the AMP2 pivot-and-revert, and Step 5's three-attempt methods fight) — RA itself
+is functionally done (see `docs/phase2_findings.md`, written today). **Decision: proceed with a
+third disease now** — lupus nephritis specifically is superseded (see `03-phase3-ssc.md` §4), not
+merely deferred, after its two real candidates were ruled out on independent grounds. Ulcerative
+colitis (`SCP259`) is the active candidate, currently blocked only on the user's mentor completing
+a Terra/Google sign-in (the user is 15; Terra requires 18+, so this genuinely needs their ISEF Adult
+Sponsor, not a workaround). **Systemic sclerosis (`GSE138669`, Tabib et al. 2021) was found the same
+day as a fully-open backup/parallel candidate** requiring no sign-in at all — see `03-phase3-ssc.md`
+§5 for the full check. With ~15 days left and Phase 3 not yet started, real risk of the
+"two-new-diseases-at-once" problem this section itself warned about is low only if Phase 3 moves
+fast once a dataset is in hand — worth revisiting this section again once GSE138669's TLS-biology
+literature check (§5) comes back.
+
 ## 6. Risks & mitigations (RA-specific, in addition to everything already in Phase 1's §6)
 
 | Risk | Mitigation |
@@ -657,6 +674,22 @@ a record, in case anyone wants the true RA-only subset later — not currently b
    doesn't depend on a reply.
 2. Two GitLab analysis-code repos (`gitlab.uzh.ch/retogerber/{synovialscrnaseq,protocol_synovial}`)
    were unreachable this session (connection timeout, not 403/404) — not pursued further.
+
+**Follow-up, 2026-09-12 — the supplement itself was actually fetched this time, and confirmed
+empty of the mapping.** Every prior attempt to reach the supplement failed at the transport layer
+(ScienceDirect 403, guessed PMC `bin/mmc1.*` paths 404, the retired PMC OA API 404) — so the
+content was never actually seen. This session found the correct PMCID (**PMC11144743** — a prior
+guess, PMC11061893, was a wrong paper entirely) via Europe PMC's search API, then pulled the real
+supplementary archive from Europe PMC's `supplementaryFiles` endpoint (WebFetch choked on the
+24.8MB response, so downloaded directly with `curl`, and read the resulting `mmc1.pdf`, all 28
+pages, directly — not summarized secondhand). **Confirmed: this paper's entire supplement is
+Figures S1-S18 plus exactly two tables — Table S1 (per-sample neutrophil histology/scRNA-seq
+detection, 18 samples) and Table S2 (demographics for 2 unrelated flow-cytometry proof-of-concept
+patients, one with septic oligoarthritis, one with early RA).** Neither table, nor anything else in
+the 28 pages, carries a per-sample RA/PsA/SpA/UA diagnosis column. **This upgrades the blocker from
+"couldn't reach the source that might resolve it" to "reached the source and confirmed it doesn't
+exist here"** — the decision in item 2 below was already being treated as final, and this removes
+the last bit of uncertainty about whether an unread supplement might have changed that.
 
 **2. Proceed now on all 25 samples, or wait for the RA-only subset? — Status: ✅ RESOLVED 2026-09-09.**
 **Decision: proceed now on all 25 samples**, labeled generically as "inflammatory arthritis vs. OA."
@@ -748,6 +781,38 @@ four of five prepped as of 2026-09-08) — true project cutoff is closer to ~Sep
 literal submission date (see §5). Decision point ~Sep 12–13, once RA's actual pace past Step 1 is
 known — the 2026-09-09 pivot-then-revert (a second real, unplanned research detour, this one
 resolved same-day) is itself a data point for that checkpoint, worth remembering when it comes.
+
+**Sub-lead checked 2026-09-12: user proposed dropping lupus nephritis and switching the third
+disease to the Smillie et al. 2019 ulcerative-colitis atlas (Broad Single Cell Portal `SCP259`),
+sourced via CELLxGENE's `.h5ad` instead of SCP directly, specifically to route around SCP's own
+access gate. Checked directly against both platforms' real metadata — the CELLxGENE route does
+NOT work for this:**
+- CELLxGENE's copy of this exact study (collection `33d19f34-87f5-455b-8ca5-9023a2e5453d`, DOI
+  `10.1016/j.cell.2019.06.029` — confirmed same paper as `SCP259`) is genuinely open, no
+  sign-in (`https://datasets.cellxgene.cziscience.com/774d77e7-210d-4237-8ca8-8d2bb841a2e4.h5ad`,
+  a direct public URL) — but its own curated metadata shows **only 34,772 cells, disease field =
+  `normal` only, tissue = colon/caecum epithelium only.** That is a small epithelial-only slice of
+  the real atlas (366,650 cells, 18 UC patients + 12 healthy, all compartments per the paper's own
+  abstract) — **no UC-patient cells, no stromal/immune compartment, at all in this file.** CELLxGENE
+  curation frequently republishes only a subset of a study's original deposit; this is exactly that
+  case, not a partial-download artifact.
+- Broad's own `SCP259` page confirms the real full dataset (365,492 cells, 30 individuals, both UC
+  and healthy) lives there, but its download page states plainly **"Please sign in to
+  download data"** — a sign-in requirement, which is exactly the class of gate the user's own
+  2026-09-11 hard constraint (zero-registration, no sign-in of any kind, stated earlier in this
+  section) rules out. Same conclusion as the AMP2/dbGaP/Synapse gates already ruled out elsewhere in
+  this doc, just a lighter-weight version of the same gate.
+- **Net finding: neither route gets a usable UC dataset under this project's own access rule** — the
+  open copy has no disease cells, and the copy with disease cells isn't open. Not recommending
+  further pursuit of `SCP259`/Smillie et al. specifically; a genuinely open GEO-hosted UC dataset
+  would need to be found fresh if UC is still wanted as the third disease.
+- **Incidental find, worth recording even though off-target:** CELLxGENE also hosts Perez et al.
+  2022 (*Science*, DOI `10.1126/science.abf1970`) — 1.26M PBMCs, 162 SLE cases + 99 controls,
+  genuinely open, no sign-in, real case/control lupus data. **Not a fit for this project's design**
+  despite solving the "can't find open lupus data" problem in isolation — it's peripheral blood, not
+  a target organ, so it has no organ-resident TLS/stromal biology for Steps 3-6 to operate on the
+  way thymus/salivary-gland/synovium tissue does. Kept here as a data point, not a recommendation to
+  pivot lupus nephritis to lupus PBMC.
 
 **8. AMP2 acquisition mechanics — Status: ✅ CLOSED 2026-09-09 (abandoned, not completed).**
 Was open while AMP2 was the leading option; moot now that Step 1 reverted to `E-MTAB-11791`/
