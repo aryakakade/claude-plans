@@ -51,6 +51,31 @@ cutoff is ~2026-09-27/28, not the literal submission date.
   — get the bulk-download command they used, or wherever the files landed locally. Full search
   history: `03-phase3-ssc.md` §2c, §4-§5 (the UC/lupus/PF candidate-search record).
 
+## 2b. UPDATE, later on 2026-09-15 (Fable) — SSc now matches Sjögren's pathway and drug; goal met
+
+The user's stated goal was one more disease matching Sjögren's on "the same pathway, the same
+drug," on time, without messy statistics. **Done, via SSc's Aim 2, with Sjögren's untouched.**
+Applied Phase 1's own upstream type-I-IFN pathway query to SSc → anifrolumab + 16 approved JAK
+inhibitors (Phase 1's exact set), then earned the claim non-circularly: an a-priori panel of 12
+canonical ISGs (Phase 1's own IFI6/IFI44L/XAF1 included; the discovery genes IFITM2/IFITM3
+excluded), fibroblasts only, patient-level, one-sided, BH within family — **10/12 cleared, 11/12
+up, all three Sjögren's ISGs confirmed in SSc.** Two citations verified against real abstracts
+(Bryon 2025 PMID 39415484; Radić 2026 PMID 41682782). Full record: `03-phase3-ssc.md` (Step 6
+pivot + Step 7), `docs/phase3_ssc_findings.md` §4b.
+
+**Headline for SSc**: the same type-I-IFN drug target, reached through a disease-specific stromal
+residual, even though the TLS architecture (Aim 1) did not transfer — which stays a clean
+negative, reported as such.
+
+**Consequences for the rest of this doc**: §4a (tonsil expansion) is DONE as a rebuild
+(`tonsil_with_cell_states_8donors.h5ad`, 61,069 cells, TLS 4.72% vs 4.67%) but the side-by-side
+re-run is deliberately NOT run — the user instructed that Sjögren's vs. MG not be touched; the
+4-donor reference stays primary everywhere. §4b (UC) is now optional — the only remaining honest
+shot at Aim 1, not needed for the drug goal, and expensive (~366K cells). Recommended use of the
+remaining time: turn `docs/phase3_ssc_findings.md` from its bullet outline into submission-ready
+prose, then the same for Phase 2 if time allows. Start UC only if the user explicitly wants Aim 1
+tested once more and provides the data access.
+
 ## 3. A real, important methodological finding from today — read before doing anything else
 
 **Three diseases tested (RA, SSc, PF) have all failed to confirm Aim 1 (TLS-signature sharing) at
