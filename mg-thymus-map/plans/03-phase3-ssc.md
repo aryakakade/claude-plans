@@ -568,6 +568,52 @@ clean as brensocatib, kept for the record but not elevated to a primary finding.
 Full results: `data/processed/phase3_step6_dgidb_raw.csv`, `phase3_step6_chembl_raw.csv`,
 `phase3_step6_ranked.csv`.
 
+**Step 6, pathway-level pivot — run 2026-09-15 (Fable) — SSc returns Phase 1's exact drug set.**
+`scripts/run_phase3_ssc_step6_pathway_pivot.py`. Phase 1's own documented move
+(`docs/phase1_methods.md` §6): the literal ISG list had almost no drug hits (ISGs are downstream
+effectors), so it queried one level upstream — IFNAR1/IFNAR2/JAK1/JAK2/TYK2/STAT1/STAT2,
+inhibitory direction — and that is where anifrolumab and the JAK inhibitors came from. SSc's
+Step 5 residual carries the same class of signal, so the same pivot was applied, unchanged.
+Result: **anifrolumab (IFNAR1, FDA-approved, 2 independent sources) + 16 distinct approved
+JAK1/JAK2/TYK2 inhibitors** (baricitinib, tofacitinib, upadacitinib, filgotinib, deucravacitinib,
+ruxolitinib, abrocitinib, ...) — Phase 1's exact set.
+
+**Correction to an earlier statement in this doc and in `docs/phase3_ssc_findings.md`**: only
+**IFITM3 (p_bh=0.003) and IFITM2 (p_bh=0.005)** are among the 14 patient-level-confirmed genes.
+IFITM1 was in the top-20 marker list but fell outside the 15-gene shortlist that went to
+patient-level testing. Two confirmed ISGs, not three.
+
+**Honest weight of this result, stated before anyone over-reads it**: the pivot's gene set is
+fixed a priori, so the drug list is mechanically the same for any disease — it proves nothing on
+its own. The scientific claim ("SSc's residual converges with Sjögren's on a type-I-IFN
+component, hence the same drug class") rests on two things: (1) SSc's own confirmed ISG hits,
+which are real but a minority of a residual dominated by ECM/fibrosis genes; and (2) independent
+literature, **both verified directly against the real abstracts, not a summary**:
+- Bryon et al. 2025, *Arthritis & Rheumatology*, PMID 39415484 (primary research): "SSc skin
+  biopsies showed the highest levels of type I IFN response"; SSc dermal-fibroblast exosomes
+  induce an IFN signature in keratinocytes, and "inhibition of TBK or JAK activity suppressed" it.
+- Radić et al. 2026, *J Clin Med*, PMID 41682782 (review): proposes anifrolumab (anti-IFNAR1)
+  for SSc, citing "upregulation of interferon-stimulated genes (ISGs)" and ongoing trials.
+(3) is what turns two discovery genes into a claim: `scripts/run_phase3_ssc_step7_isg_convergence.py`
+(launched 2026-09-15) tests an a-priori canonical ISG panel — IFI6/IFI44L/XAF1 (Phase 1's own),
+ISG15, MX1, IFI27, IFI44, OAS1, IFIT1, IFIT3, RSAD2, STAT1 — with IFITM2/IFITM3 deliberately
+excluded (they are the discovery; re-testing them would be circular, Phase 1's Step 7 lesson),
+patient-level, one-sided UP (a genuine a-priori direction), BH within the family. Result pending
+as of this note.
+
+**Aim 1 is unchanged by any of this: SSc's TLS-signature transfer remains a clean negative.** If
+Step 7 confirms the ISG component, the SSc story is "the same drug target reached through a
+disease-specific stromal residual, despite non-shared TLS architecture" — reportable and, if
+anything, more interesting than a simple replication. If Step 7 is null, the brensocatib/CTSC
+finding stands on its own and the IFN convergence gets reported as suggestive-but-unconfirmed.
+
+**Tonsil 4→8 rebuild, completed 2026-09-15**: `data/interim/tonsil_with_cell_states_8donors.h5ad`,
+61,069 cells, 8 donors, TLS-region 4.72% (vs. 4.67% in the 4-donor object — nearly identical,
+reassuring). **Per the user's explicit instruction, Sjögren's vs. MG is not being touched**: the
+4-donor reference stays the primary for every reported number; the side-by-side re-run
+(`rerun_step4_against_8donor_tonsil.py`) is off the critical path — at most a sensitivity
+appendix later, not a replacement.
+
 ## 7. 2026-09-12 — two more user-suggested candidates checked, one is a real find
 
 User asked about "systemic sclerosis, Tabib et al. (`GSE138286`)" and "Crohn's (`GSE125527`)" while
