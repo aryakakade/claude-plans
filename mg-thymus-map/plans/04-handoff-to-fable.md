@@ -94,6 +94,17 @@ the reference group's sample size, applied uniformly to every past and future co
 doesn't touch what counts as significant, only the power behind "what does normal lymphoid tissue
 look like." The user explicitly proposed this themselves.
 
+**Status 2026-09-15 (Fable, same session after the model switch): scripts written and committed,
+rebuild in flight.** `scripts/rebuild_tonsil_reference_8donors.py` writes a NEW
+`data/interim/tonsil_with_cell_states_8donors.h5ad` (4-donor file left untouched);
+`scripts/rerun_step4_against_8donor_tonsil.py` then recomputes every Step 4 test against both
+references, full-25 and literature-prior-13, into
+`data/processed/step4_tonsil_4_vs_8donor_comparison.csv`. Confirmed before launching: all 8
+donors' raw matrices present on disk; the cached 4-donor object used donors BCLL-10/11/12/14-T
+(38,072 cells, 1,778 TLS-region), so the rebuild adds BCLL-2/8/9/13-T. If the rebuild has
+finished when you read this, run the re-run script next; if it hasn't, check for the 8-donor
+h5ad before assuming.
+
 **Why it's real, bounded work, not a quick tweak**: tonsil is the shared reference for every
 result reported so far. Doing this properly means:
 1. Reload tonsil with `max_donors=8` (or reload without a cap and confirm exactly 8 come back),
