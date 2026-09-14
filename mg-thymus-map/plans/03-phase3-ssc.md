@@ -900,6 +900,24 @@ fibroblast finding, or the negative TLS-transfer tests) in either direction. A p
 touch shared code Sjögren's own confirmed result also depends on — worth doing carefully, not
 under today's time pressure.
 
+**Signature-subset diagnostic completed for SSc and PF, 2026-09-15 (exploratory, post-hoc — see
+`04-handoff-to-fable.md` §3 for the Sjögren's/RA/OA half).** `scripts/analyze_signature_subset_ssc_pf.py`,
+fresh reprocess of both (incl. the immune-mislabel correction), 4-donor tonsil unchanged:
+
+| | full 25 | literature-prior 13 | MG-derived 12 |
+|---|---|---|---|
+| SSc (n=12) | 0.584 | 0.115 | 0.923 |
+| PF (n=17) | 0.291 | 0.502 | 0.795 |
+
+Neither approaches significance with the literature-prior half; SSc moves the right way (0.58 →
+0.12) but not near 0.05, PF moves the wrong way. The MG-derived half is noise in both, as in RA and
+Sjögren's. Full five-dataset picture for the literature-prior subset alone: Sjögren's 0.039, RA
+0.056, SSc 0.115, PF 0.502, OA 0.786 — a gradient in which only Sjögren's clears. Run-to-run
+variation vs. the original Step 4 numbers (SSc full 0.676 there vs. 0.584 here; TLS-region 319 vs.
+296; PF 418 vs. 432) is the documented Harmony-stochasticity effect, not a new issue. **Reportable
+only as an exploratory note about which half of the signature carries cross-disease signal —
+it changes no Aim 1 conclusion.** Results: `data/processed/signature_subset_diagnostic_ssc_pf.csv`.
+
 **Where next, given the user now has UC's downloaded data and wants to fully close out one disease
 before starting another:** SSc is functionally complete through Step 6 with a real, defensible
 positive finding (the 14-gene fibrosis signature + brensocatib) — the natural point to write up its

@@ -92,14 +92,20 @@ half alone:
 | Sjögren's (confirmed) | p=0.012 | p=0.039 (still significant) | p=0.842 (noise) |
 | RA | p=0.625 | **p=0.056 (borderline)** | p=0.987 (worse than noise) |
 | OA | p=0.129 | p=0.786 | p=0.814 |
+| SSc (added later 2026-09-15, fresh reprocess) | p=0.584 | p=0.115 | p=0.923 |
+| PF lung (same) | p=0.291 | p=0.502 | p=0.795 |
 
 **Real, honest read: the literature-prior half is carrying the actual signal; the MG-derived half
 (found via `liana-py` cell-communication analysis run only on MG's own data — see
 `docs/phase1_methods.md` §3) looks MG-specific rather than universally portable, and mixing it
 into the full signature appears to dilute a real signal in at least RA's case.** RA's p=0.056
 is *suggestive*, not confirmed — say that plainly if you report it, don't round it up to a
-finding. This was NOT checked for SSc or PF yet (both would need a fresh reprocess since their
-full-gene TLS-scored objects were never cached to disk — see §4 below).
+finding. SSc and PF were checked later the same day (rows above): neither approaches
+significance with the literature-prior half (SSc 0.115, PF 0.502); the MG-derived half is noise
+in both. The literature-prior subset alone therefore forms a gradient — Sjögren's 0.039, RA 0.056,
+SSc 0.115, PF 0.502, OA 0.786 — in which only Sjögren's clears. This bears directly on UC: the
+frozen pre-registration (`05-uc-preregistration.md`) keeps the full 25-gene signature as the
+primary test and allows the literature-prior subset only as a labeled exploratory secondary.
 
 ## 4. Two concrete, already-scoped next steps (do these before UC, or alongside it)
 
