@@ -14,6 +14,11 @@ corrected there too) is the user's own working target/buffer to finish substanti
 second real deadline.
 Source material: [`docs/project-introduction.txt`](../docs/project-introduction.txt) (extracted from the original PDF), by Arya Kakade — *"A Thymus-Anchored Map of Tertiary Lymphoid Structures Across Multiple Autoimmune Diseases."*
 
+**2026-09-15 — picking this project up fresh (e.g. a new model/session)? Start with
+[`04-handoff-to-fable.md`](04-handoff-to-fable.md) first**, not this file — it's the current,
+prioritized entry point (state of all phases, the real next steps already scoped, and the standing
+rules not to relitigate) written specifically for exactly that handoff.
+
 ---
 
 ## 1. Project summary (from the source document)
