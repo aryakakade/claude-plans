@@ -109,4 +109,30 @@ conclusion, which reports what the map found.
 
 ## 9. Addenda (dated; the text above is frozen)
 
-*(none yet)*
+**Addendum 1 — 2026-09-15, still before any UC data was downloaded.** Two gaps found on a
+skeptical re-read, closed here rather than left to be decided after seeing results.
+
+**(a) Minimum contributing sample size — when the test is "underpowered" rather than "not
+confirmed."** A patient contributes to the primary test only if at least one of their cells is
+called TLS-region (`is_gc_b_cell | is_tfh`); PF lung showed this can silently remove patients
+(3 of 20 had none). With only 4 tonsil donors, the exact permutation test's smallest achievable
+one-sided p is 1 / C(n_UC + 4, 4): for n_UC = 2 that is 0.067 — the test cannot pass regardless
+of the biology. Rule, fixed now: **the primary test is reported as "underpowered — not
+interpretable" (a third outcome, distinct from §7's "not confirmed") if fewer than 8 of the 18 UC
+patients contribute a median.** At n_UC = 8 the floor is 1 / C(12, 4) = 0.002, comfortably below
+0.05. The same floor (8 of 12) applies to the healthy-control-vs-tonsil supporting line. The number
+of contributing patients is reported in every case.
+
+**(b) Pooling versus the inflamed-only primary group.** §4's two rules interact. Resolution:
+for the **primary** group, a UC patient's median is computed from that patient's **inflamed
+samples only**; non-inflamed samples from UC patients are pooled per patient into a separate
+**secondary "non-inflamed UC" line**, reported alongside, not part of the pass criterion. If
+`all.meta2.txt` carries no inflamed/non-inflamed distinction at all, the primary group is all
+samples from UC patients, pooled per patient, and this is stated in the results. Mapping the real
+field names onto these definitions is format inspection, not analysis, and is permitted.
+
+**(c) One clarification, not a change.** §4's supporting comparisons (healthy control vs. tonsil;
+UC vs. healthy control, two-sided) and Step 4's descriptive outputs (proportion of TLS-region
+cells above the tonsil threshold; bootstrap CI) are reported for continuity with Sjögren's/RA/SSc/
+PF. **None of them is a pass criterion.** Only §4 step 4's one-sided exact permutation test, at
+p < 0.05 with n_UC ≥ 8, confirms Aim 1.
