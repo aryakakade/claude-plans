@@ -194,3 +194,16 @@ in quietly because it makes later results look better.
 - Memory (if you have access to the same memory store this session used): search for
   `mg-thymus-map` entries — `mg_thymus_map_phase3_uc_pivot.md` has the most recent, dense summary
   of exactly where things stand as of this handoff.
+
+## 7. UPDATE 2026-09-16 00:30 IST — UC done: Aim 1 NOT confirmed (pre-registered, p = 1.000)
+
+UC data (SCP259) landed 2026-09-15 23:37 IST; Steps 1, 2 and 4 ran overnight, exactly per
+`05-uc-preregistration.md` (see its Addendum 2 for the outcome). Primary: 18/18 UC patients
+contributed, UC (inflamed) vs. tonsil one-sided exact permutation **p = 1.000** — UC's TLS-region
+cells score *below* tonsil (every patient below every donor). Not confirmed; Steps 5–7 not run;
+**Aim 1 scoreboard 1/5 (Sjögren's only).** Exploratory lit-prior-13 line: UC above tonsil
+(p = 0.0012) *but so is healthy colon* (p = 0.0033) — not UC-specific, no claim. Full timestamped
+history: `mg-thymus-map/docs/phase3_uc_runlog.md` (branch `worktree-ssc-findings-prose`,
+unmerged). Real, reportable descriptive biology: inflamed UC colon has 3.26% TLS-organizing cells
+vs. 1.24% non-inflamed / 1.35% healthy / 4.67% tonsil (9× the GC-B cells of non-inflamed) — TLS
+are *present* in UC; they are just not drawn on the MG map. Next: write-up only.

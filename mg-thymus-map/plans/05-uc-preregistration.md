@@ -136,3 +136,18 @@ UC vs. healthy control, two-sided) and Step 4's descriptive outputs (proportion 
 cells above the tonsil threshold; bootstrap CI) are reported for continuity with Sjögren's/RA/SSc/
 PF. **None of them is a pass criterion.** Only §4 step 4's one-sided exact permutation test, at
 p < 0.05 with n_UC ≥ 8, confirms Aim 1.
+
+**Addendum 2 — 2026-09-16 00:27 IST, OUTCOME (data on disk 2026-09-15 23:37 IST; primary result
+50 minutes later, inside the 3-day box).** Primary test run exactly as specified above, no
+variants: 18 of 18 UC patients contributed a median (Addendum 1a floor met, test interpretable);
+UC (inflamed samples) vs. 4 tonsil donors, exact permutation (7,315), one-sided, observed pooled
+median difference −0.0347, **p = 1.000**. **Outcome per §7: NOT CONFIRMED (p ≥ 0.10).** UC's
+TLS-region cells score below tonsil, not above. Supporting lines (not pass criteria): non-inflamed
+UC vs. tonsil p = 0.997 (18/18); healthy control vs. tonsil p = 1.000 (12/12); UC (inflamed) vs.
+healthy control two-sided p = 0.169. Sole secondary (§5, exploratory): literature-prior 13-gene
+subset UC vs. tonsil p = 0.0012 (UC above tonsil) — **but healthy colon vs. tonsil on the same
+subset p = 0.0033**, so it is not UC-specific and cannot confirm Aim 1, as §5 already states.
+Steps 5–7 not run (§6). Project Aim 1 scoreboard: 1 of 5 (Sjögren's only). Full timestamped
+record: `mg-thymus-map/docs/phase3_uc_runlog.md`; stage logs `docs/logs/phase3_uc_step*.log`;
+result tables `data/processed/phase3_uc_step4_*.csv`; code on branch
+`worktree-ssc-findings-prose`.
