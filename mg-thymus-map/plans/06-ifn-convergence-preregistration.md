@@ -106,3 +106,15 @@ One working day from this commit. Outputs, all new: `data/processed/phase4_ifn_c
 `docs/phase4_ifn_runlog.md`.
 
 ## 9. Addenda (dated; the text above is frozen)
+
+**Addendum 1 — 2026-09-17, before any run, on the user's instruction.** (a) **Phase 4 is an
+additive, fully deletable extra.** The official Sjögren's and SSc numbers remain the Phase 1 and
+Phase 3 files and documents, untouched; Phase 4's Sjögren's and SSc lines are re-derivations
+for the scoreboard only, computed into `phase4_ifn_*` files. Deleting every `data/processed/
+phase4_ifn_*` file, `scripts/run_phase4_ifn_convergence.py`, `docs/phase4_ifn_runlog.md` and
+this document removes Phase 4 completely with no effect on any other result. (b) **RA is
+underpowered by construction**: OA has 4 patients and §4's floor is 5 per arm, so the RA line
+will be reported as "underpowered — not interpretable" whatever its numbers. Stated now so it is
+not read as a post-hoc exclusion. (c) The PF fibroblast object is rebuilt from raw counts
+restricted to exactly the cells `pf_harmonized.h5ad` kept (its saved matrix holds only 2,000
+variable genes, 6 panel genes absent); the corrected labels are copied, nothing is re-annotated.
