@@ -118,3 +118,14 @@ will be reported as "underpowered — not interpretable" whatever its numbers. S
 not read as a post-hoc exclusion. (c) The PF fibroblast object is rebuilt from raw counts
 restricted to exactly the cells `pf_harmonized.h5ad` kept (its saved matrix holds only 2,000
 variable genes, 6 panel genes absent); the corrected labels are copied, nothing is re-annotated.
+
+**Addendum 2 — 2026-09-17 20:01 IST, OUTCOME.** Run once, exactly as specified (launched
+19:54:23, complete 20:01:16). Primary composite, fibroblasts, patient level, one-sided:
+Sjögren's (9 genes, own discovery ISGs excluded) p = 0.0070 → **present** (9/9 genes up, 4/9
+BH); SSc (fresh reprocess, `phase4_*` only) p = 0.0021 → **present** (10/12 BH, 11/12 up —
+reproduces Step 7 exactly); PF p = 0.086 → not present (borderline; 10/12 up, 1/12 BH); UC
+inflamed p = 0.781 → not present (0/12 BH; non-inflamed supporting line p = 0.850); RA vs OA →
+underpowered (OA n = 4), as Addendum 1b said. **Scoreboard: 2 of 5.** Official Sjögren's/SSc
+files confirmed untouched (mtimes 2026-08-30, 2026-09-12). Full record:
+`mg-thymus-map/docs/phase4_ifn_runlog.md`, `docs/logs/phase4_ifn_convergence_2026-09-17.log`,
+`data/processed/phase4_ifn_*.csv`.
