@@ -236,3 +236,10 @@ than "UC doesn't share the drug" and belongs in the discussion.
 **Final scoreboard:** MG map transfers 1/5 (Sjögren's); type-I IFN stromal programme 2/5
 (Sjögren's, SSc) → anifrolumab + JAK inhibitors; UC reaches JAK inhibitors by a different
 cytokine route; contrast signature batch-driven. **Next: write-up only.**
+
+**SSc depth check result (2026-09-18, exploratory, `mg-thymus-map/docs/exploratory_depth_checks.md`).**
+SSc TLS-region cells: median 1,982 UMIs / 748 genes vs tonsil 3,378 / 1,471. Against tonsil thinned
+to SSc depth (5 seeds), SSc goes from diff −0.006 (p = 0.676) to diff 0.000 to +0.018, **p = 0.11–0.47
+— still not confirmed**; healthy skin p = 0.38–0.76. The fresh reprocess reproduced the official
+SSc medians exactly. Depth handicaps shallow datasets modestly but rescues neither SSc nor UC.
+**Aim 1 scoreboard unchanged: 1 of 5.**
