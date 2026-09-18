@@ -171,3 +171,11 @@ approved for UC (tofacitinib, Sandborn et al. 2017 NEJM, PMID 28467869; upadacit
 Panaccione et al. 2025, PMID 40347957). **Reading: same drug class, different mechanism** —
 Sjögren's and SSc reach JAK inhibitors through type-I interferon (which also makes anifrolumab
 relevant); UC reaches them through IFN-γ and OSM/IL-11, which matches their clinical use.
+
+**Addendum 4 — 2026-09-18 ~23:05 IST, correcting Addendum 3(a).** Addendum 3(a)'s depth check
+scored only tonsil's TLS-region cells; decoupler's AUCell drops genes empty across the cells it is
+given, so it must score the whole object (as every official Step 4 did). Corrected: UC (inflamed)
+vs depth-matched tonsil diff −0.015, **p = 0.997** (not p = 0.74); healthy colon p = 0.879.
+**Addendum 3(a)'s statement that the shortfall was "largely a depth artifact" is retracted**: depth
+explains part of it, UC remains below depth-matched tonsil. Outcome (Addendum 2) unchanged:
+not confirmed. Addendum 3(b) (drug mechanism) did not use AUCell and stands.

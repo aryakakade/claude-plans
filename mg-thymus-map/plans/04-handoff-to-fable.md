@@ -243,3 +243,17 @@ to SSc depth (5 seeds), SSc goes from diff −0.006 (p = 0.676) to diff 0.000 to
 — still not confirmed**; healthy skin p = 0.38–0.76. The fresh reprocess reproduced the official
 SSc medians exactly. Depth handicaps shallow datasets modestly but rescues neither SSc nor UC.
 **Aim 1 scoreboard unchanged: 1 of 5.**
+
+## 9. UPDATE 2026-09-18 late evening — Phase 6, Phase 7 robustness, and a retracted correction
+
+- **Phase 6** (`09-...`): interferon tracks MG-like TLS across 110 patients (ρ = +0.26, p = 0.0048).
+- **Phase 7** (`10-...`): all four headlines survive project-wide BH FDR across the ten primary
+  tests, every leave-one-out run, and bootstrap CIs excluding zero; Sjögren's Aim 1 replicates
+  against the four held-out tonsil donors. Found while running: Phase 1's Aim 1 statistic is the
+  pooled-cell median (p = 0.003); later diseases used the median of per-patient medians
+  (Sjögren's on that: p = 0.012). Both significant; report both.
+- **AUCell pitfall:** decoupler drops genes empty across the cells it is scored with — always
+  score the whole object, then select cells. Whole-object scoring reproduces Phase 1 exactly.
+- **Retracted:** §8's "UC shortfall was largely a depth artifact (p = 0.74)" was produced with
+  subset scoring. Corrected: UC stays below depth-matched tonsil (p = 0.997). SSc depth check
+  corrected to p = 0.20–0.53 (still not confirmed). Aim 1 scoreboard unchanged (1/5).
