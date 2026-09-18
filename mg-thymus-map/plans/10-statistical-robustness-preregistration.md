@@ -62,3 +62,17 @@ no reinterpretation of any earlier outcome. A fragile verdict is reported as fra
 `scripts/run_phase7_robustness.py`; log `docs/phase7_robustness_runlog.md`.
 
 ## 7. Addenda (dated; the text above is frozen)
+
+**Addendum 1 — 2026-09-18 23:10 IST, OUTCOME and two findings made while running.**
+(a) *Statistic.* Phase 1's Sjögren's Aim 1 test used the pooled-cell median (p = 0.00303); later
+diseases used the median of per-patient medians (Sjögren's on that statistic: p = 0.0121). Both
+are patient-level permutation tests; H-A is reported under both. (b) *Scoring pitfall in the new
+scripts.* decoupler's AUCell drops genes empty across the cells it is given, so scores depend on
+scoring the whole object; the first run of §3.3 (held-out) scored a TLS-only subset. Whole-object
+scoring reproduces Phase 1 exactly (every patient median to 0.0, p = 0.00303). Corrected and re-run.
+**Outcome:** all four headlines survive BH FDR across the ten primary tests (q 0.015–0.018; 0.021–
+0.030 if Sjögren's Aim 1 uses p = 0.012); SSc Phase 4, Phase 6 and Sjögren's Aim 1 (pooled-cell)
+also survive Bonferroni; Sjögren's Phase 4 does not (0.070). Every headline is LOO-robust (largest
+LOO p 0.0038–0.033). Every bootstrap CI excludes zero (H-A barely: +0.0001 to +0.044). H-A
+replicates against held-out tonsil donors (p = 0.012 pooled-cell; 0.046 per-patient-median).
+Full record: `mg-thymus-map/docs/phase7_robustness_runlog.md`.
