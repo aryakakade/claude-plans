@@ -93,3 +93,8 @@ higher MG-map TLS score (ρ = +0.26, p = 0.0048; without Sjögren's p = 0.0098; 
 | Lupus nephritis | reported | strongest of all | checked 2026-09-11: ImmPort too small/immune-sorted; Synapse gated | not accessible |
 | Multiple sclerosis | meningeal B-cell follicles in ~40% of SPMS (Howell 2011 *Brain* PMID 21840891; Serafini 2004 PMID 15193029) | — | no meningeal scRNA-seq with controls | not testable |
 | Dermatomyositis | not established in muscle | very strong | not searched in depth | TLS premise weak |
+
+**Decision 2026-09-18 (user: "ok sure"):** Hashimoto's thyroiditis is NOT started before the fair;
+it goes into Future Work as the named next disease (germinal-centre follicles + organ-specific
+autoantibodies, matching MG; open data HRA001684, 5 patients, no same-study healthy thyroid).
+Science is closed; remaining time goes to the write-up.
