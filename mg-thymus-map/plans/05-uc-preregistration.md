@@ -151,3 +151,23 @@ Steps 5–7 not run (§6). Project Aim 1 scoreboard: 1 of 5 (Sjögren's only). F
 record: `mg-thymus-map/docs/phase3_uc_runlog.md`; stage logs `docs/logs/phase3_uc_step*.log`;
 result tables `data/processed/phase3_uc_step4_*.csv`; code on branch
 `worktree-ssc-findings-prose`.
+
+**Addendum 3 — 2026-09-18, EXPLORATORY and post-hoc (does not change Addendum 2's outcome).**
+Two read-only robustness checks, asked for by the user (`mg-thymus-map/scripts/explore_uc_robustness.py`,
+outputs `data/processed/explore_uc_robustness_*.csv`, commit `59bd952`).
+(a) **Depth — correction to Addendum 2's interpretation.** UC TLS-region cells carry a median
+1,490 UMIs vs tonsil's 3,378. With tonsil counts binomially thinned to UC depth (×0.44), UC
+(inflamed) is **indistinguishable** from tonsil (diff −0.005, one-sided p = 0.74), not below it;
+healthy colon likewise (p = 0.38). The "every patient below every donor" shortfall was largely a
+depth artifact. The outcome stays **not confirmed** (UC is not above tonsil); the cleanest
+evidence against H1 is same-study, same-depth: UC (inflamed) not above healthy colon (p = 0.17).
+(b) **Drug mechanism.** Type-I IFN is up in no UC compartment (fibroblasts, epithelium,
+endothelium, T, B, plasma, macrophages), so anifrolumab (anti-IFNAR1) has no rationale in UC.
+Up in inflamed UC instead: the OSM/IL-11 inflammation-associated-fibroblast programme
+(fibroblasts p = 0.006; epithelium, T cells, macrophages) and IFN-γ (epithelium p = 0.010,
+macrophages p = 0.015) — matching Smillie et al. 2019 (PMID 31348891) and West et al. 2017
+(PMID 28368383). All three cytokines signal through JAK1/JAK2, and JAK inhibitors are already
+approved for UC (tofacitinib, Sandborn et al. 2017 NEJM, PMID 28467869; upadacitinib, e.g.
+Panaccione et al. 2025, PMID 40347957). **Reading: same drug class, different mechanism** —
+Sjögren's and SSc reach JAK inhibitors through type-I interferon (which also makes anifrolumab
+relevant); UC reaches them through IFN-γ and OSM/IL-11, which matches their clinical use.

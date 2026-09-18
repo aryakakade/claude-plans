@@ -207,3 +207,32 @@ history: `mg-thymus-map/docs/phase3_uc_runlog.md` (branch `worktree-ssc-findings
 unmerged). Real, reportable descriptive biology: inflamed UC colon has 3.26% TLS-organizing cells
 vs. 1.24% non-inflamed / 1.35% healthy / 4.67% tonsil (9× the GC-B cells of non-inflamed) — TLS
 are *present* in UC; they are just not drawn on the MG map. Next: write-up only.
+
+## 8. UPDATE 2026-09-18 — science complete; one correction; write-up-ready drug finding
+
+**Phases added after §7, all pre-registered, all deletable extras, Sjögren's/SSc official files
+untouched (user's hard rule):**
+- **Phase 4 — type-I IFN fibroblast programme** (`06-ifn-convergence-preregistration.md`):
+  present in **2 of 5** — Sjögren's (p = 0.007, 9/9 non-discovery genes up) and SSc (p = 0.002,
+  reproduces Step 7); PF borderline (p = 0.086); UC absent (p = 0.78); RA underpowered.
+- **Phase 5 — MG-vs-tonsil contrast signature** (`07-contrast-signature-preregistration.md`):
+  **batch-driven, 0 of 5** (stress/annotation genes; healthy tissues also above tonsil). Future
+  work needs a same-study healthy thymus.
+
+**Correction to §7.** §7's "every UC patient below every tonsil donor" was largely a sequencing-
+depth artifact: against depth-matched tonsil, UC is indistinguishable (p = 0.74). Aim 1 is still
+not confirmed in UC (see `05-uc-preregistration.md` Addendum 3). SSc has the same depth handicap;
+a depth-matched SSc check was run 2026-09-18 (result appended below when complete).
+
+**Write-up-ready finding — "same drug class, different mechanism".** Type-I IFN is absent in
+every UC compartment, so anifrolumab has no rationale in UC. Inflamed UC instead up-regulates
+IFN-γ (epithelium, macrophages) and the OSM/IL-11 inflammatory-fibroblast programme (fibroblasts,
+epithelium, T cells, macrophages). All signal through JAK1/JAK2, and JAK inhibitors are already
+approved for UC (tofacitinib PMID 28467869; upadacitinib). Sjögren's and SSc reach JAK
+inhibitors through type-I interferon (which also makes anifrolumab relevant); UC reaches them
+through IFN-γ and OSM/IL-11, matching clinical use. This is a stronger, more precise statement
+than "UC doesn't share the drug" and belongs in the discussion.
+
+**Final scoreboard:** MG map transfers 1/5 (Sjögren's); type-I IFN stromal programme 2/5
+(Sjögren's, SSc) → anifrolumab + JAK inhibitors; UC reaches JAK inhibitors by a different
+cytokine route; contrast signature batch-driven. **Next: write-up only.**
