@@ -66,3 +66,11 @@ measured in fibroblasts and y in immune TLS-region cells, which limits but does 
 `scripts/run_phase6_ifn_tls_coupling.py`; log `docs/phase6_coupling_runlog.md`.
 
 ## 8. Addenda (dated; the text above is frozen)
+
+**Addendum 1 — 2026-09-18 15:14 IST, OUTCOME.** Run once as specified. 110 matched patients
+(Sjögren's 13, SSc 22, PF 19, RA 27, UC 29). **Primary: ρ = +0.258, stratified one-sided
+p = 0.0048 → coupling supported.** Secondary (a) excluding Sjögren's: ρ = +0.245, p = 0.0098.
+Secondary (b) per dataset, all positive: RA +0.37 (p = 0.032), Sjögren's +0.36 (0.117), UC +0.26
+(0.087), PF +0.22 (0.182), SSc +0.08 (0.358). Limits per §5 stand (correlation; possible global-
+inflammation confound; IFN-inducible chemokines inside the TLS signature). Record:
+`mg-thymus-map/docs/phase6_coupling_runlog.md`, `data/processed/phase6_coupling_*.csv`.
