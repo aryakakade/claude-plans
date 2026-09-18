@@ -77,3 +77,19 @@ scores via Th17.1/JAK-STAT3 (Zhao et al. 2026 Neurotherapeutics PMID 41547654).
 fibroblast type-I IFN composite (Phase 4 file) have higher MG-map TLS scores (Step 4 patient
 medians)? Directly tests the Cufi-derived bridge on data already on disk. Small n per disease and
 shared "global inflammation" confounding are stated limits; it cannot confirm Aim 1.
+
+## Update 2026-09-18 — Phase 6 ran; candidate sixth diseases
+
+**Phase 6 (the proposed coupling test) ran under `09-ifn-tls-coupling-preregistration.md`:**
+across 110 patients in all five datasets, a stronger fibroblast type-I IFN programme goes with a
+higher MG-map TLS score (ρ = +0.26, p = 0.0048; without Sjögren's p = 0.0098; positive in all five).
+
+**Other diseases that could match both aims (searched 2026-09-18):**
+
+| candidate | germinal-centre TLS in the organ | type-I IFN | open scRNA-seq with controls | verdict |
+|---|---|---|---|---|
+| **Hashimoto's thyroiditis** | yes — lymphoid follicles with GCs are its histological hallmark | indirect (IFN-α therapy induces thyroiditis); Th1/IFN-γ prominent | GSA-Human **HRA001684, open access**, 5 HT thyroid + PBMC (Song et al. 2025 *Immun Inflamm Dis*, PMC11811715, used 1 own healthy thyroid); likely raw reads needing alignment — **to verify** | best untested candidate for Aim 1; Aim 2 lacks a same-study healthy thyroid |
+| Graves' disease | "minimal germinal centers", extrafollicular Tph/CD11c+ B cells | IFN-γ dominant | HRA010993 (12 GD, 10 controls, *Adv Sci* 2025, PMID 41126733) — **controlled access**, excluded by project rule | literature predicts not MG-like |
+| Lupus nephritis | reported | strongest of all | checked 2026-09-11: ImmPort too small/immune-sorted; Synapse gated | not accessible |
+| Multiple sclerosis | meningeal B-cell follicles in ~40% of SPMS (Howell 2011 *Brain* PMID 21840891; Serafini 2004 PMID 15193029) | — | no meningeal scRNA-seq with controls | not testable |
+| Dermatomyositis | not established in muscle | very strong | not searched in depth | TLS premise weak |
