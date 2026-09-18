@@ -124,3 +124,16 @@ Two working days from this commit. Outputs, all new: `data/processed/phase5_cont
 `scripts/run_phase5_contrast_signature.py`; log `docs/phase5_contrast_runlog.md`.
 
 ## 10. Addenda (dated; the text above is frozen)
+
+**Addendum 1 — 2026-09-18 11:19 IST, OUTCOME.** Run once as specified (11:03:28 → 11:19:11).
+Derivation: 2,806 eligible genes, 677 pass log2FC ≥ 1 + BH < 0.05, 383 stable; top 25 kept —
+ten immediate-early/stress/hypoxia genes (NR4A2, NR4A3, DUSP1, DUSP4, PER1, RHOB, AREG, MT2A,
+SLC2A3, ANXA1), three unannotated lncRNA IDs, zero overlap with the original map, zero ISGs.
+Held-out tonsil donors score 0.0. Transfer: Test A p < 0.05 in all five diseases, **but Test B
+fails everywhere** (no disease above its own comparator; RA underpowered) **and 4 of 5 healthy
+comparator groups are also above tonsil (SICCA 0.043, healthy colon 0.012, healthy lung 0.026,
+healthy skin 0.017)**. **Verdict per §7: BATCH-DRIVEN. MG-like TLS diseases: 0 of 5. No claim
+for any disease.** Per §8: the two-dataset derivation cannot separate disease from protocol;
+a second-generation signature needs a same-study healthy thymus. Phases 1–4 unchanged. Record:
+`mg-thymus-map/docs/phase5_contrast_runlog.md`, `docs/logs/phase5_contrast_2026-09-18.log`,
+`data/processed/phase5_contrast_*.csv`.
