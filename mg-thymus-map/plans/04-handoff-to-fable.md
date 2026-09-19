@@ -257,3 +257,8 @@ SSc medians exactly. Depth handicaps shallow datasets modestly but rescues neith
 - **Retracted:** §8's "UC shortfall was largely a depth artifact (p = 0.74)" was produced with
   subset scoring. Corrected: UC stays below depth-matched tonsil (p = 0.997). SSc depth check
   corrected to p = 0.20–0.53 (still not confirmed). Aim 1 scoreboard unchanged (1/5).
+
+**Decision 2026-09-19 (user: "let it stay 25 gene marker only"):** the 25-gene MG map remains the
+one official signature for every result, figure and headline. The 22-gene map (CXCL9/10/11
+removed, Phase 8) is a robustness check only — reported as "the coupling is unchanged without
+those genes" — and must never replace the 25-gene map in any analysis or claim.
