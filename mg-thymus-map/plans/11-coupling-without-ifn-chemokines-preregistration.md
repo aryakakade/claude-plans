@@ -56,3 +56,10 @@ switch; no substituting official medians for the 22-gene line.
 script `scripts/run_phase8_coupling_22gene.py`; log `docs/phase8_coupling_runlog.md`.
 
 ## 7. Addenda (dated; the text above is frozen)
+
+**Addendum 1 — 2026-09-19 15:49 IST, OUTCOME.** Run once as specified. 109 matched patients.
+**Primary (22-gene map): ρ = +0.30 (95% CI +0.10 to +0.47), stratified one-sided p = 0.0010 →
+H1 supported: the coupling does not depend on CXCL9/10/11.** Same-run full 25-gene reference:
+ρ = +0.30, p = 0.0008 (removal changes nothing). Leave-one-disease-out p 0.0019–0.0069; every
+disease alone positive (ρ +0.25 to +0.37). Added as test 11: BH q = 0.011, Bonferroni 0.011. Record:
+`mg-thymus-map/docs/phase8_coupling_runlog.md`.
