@@ -67,3 +67,12 @@ unadjusted one — both are reported whatever they show.
   that qualification, and the cross-phase documents are updated to say so.
 
 ## 7. Addenda (dated; the text above is frozen)
+
+**Addendum 1 — 2026-09-22 09:08 IST, OUTCOME.** Run once as specified, 110 patients, none
+dropped. **Primary (adjusted for depth + immune fraction): ρ = +0.254, one-sided p = 0.0045 →
+H1 supported; the coupling survives adjustment.** Unadjusted on the same patients ρ = +0.257
+(p = 0.0049); depth only +0.246 (0.0049); immune fraction only +0.267 (0.0025). Why it barely
+moves: the controls correlate modestly with the interferon score (depth +0.19, immune fraction
++0.28) but essentially not with the TLS score (+0.09, +0.00), and a confounder must move both.
+Added as test 12: BH q = 0.0115; Bonferroni 0.054. Claim remains correlational; unmeasured
+confounders are not excluded. Record: `mg-thymus-map/docs/phase9_partial_correlation_runlog.md`.
